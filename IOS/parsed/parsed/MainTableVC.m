@@ -31,8 +31,6 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-
-    self.entryObjects = [[NSArray alloc] init];
     
     // Uncomment the following line to preserve selection between presentations.
     // self.clearsSelectionOnViewWillAppear = NO;
@@ -46,6 +44,7 @@
                                                object:nil];
     PFUser *currentUser = [PFUser currentUser];
     if (currentUser) {
+        self.entryObjects = [[NSArray alloc] init];
         PFQuery *query = [PFQuery queryWithClassName:@"Entry"];
         [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
             if (!error) {
@@ -70,6 +69,7 @@
     if (currentUser) {
         // do stuff with the user
     } else {
+        self.entryObjects = nil;
         LoginVC *loginVc = [self.storyboard instantiateViewControllerWithIdentifier:@"loginVc"];
         [self presentViewController:loginVc animated:YES completion:nil];
     }
@@ -83,6 +83,9 @@
 
 - (void)reloadData
 {
+    if (self.entryObjects == nil) {
+        self.entryObjects = [[NSArray alloc] init];
+    }
     PFQuery *query = [PFQuery queryWithClassName:@"Entry"];
     [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
         if (!error) {
@@ -110,6 +113,9 @@
             NSLog(@"Log Out selected");
             
             [PFUser logOut];
+            
+            self.entryObjects = nil;
+            [self.tableView reloadData];
             
             LoginVC *loginVc = [self.storyboard instantiateViewControllerWithIdentifier:@"loginVc"];
             [self presentViewController:loginVc animated:YES completion:nil];
