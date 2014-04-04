@@ -10,11 +10,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "parsed/MainTableVC.m"
-            timestampString = "418275423.642579"
+            timestampString = "418277580.851627"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "69"
-            endingLineNumber = "69"
+            startingLineNumber = "68"
+            endingLineNumber = "68"
             landmarkName = "-viewDidAppear:"
             landmarkType = "5">
          </BreakpointContent>

@@ -65,10 +65,10 @@
 
 - (void)viewDidAppear:(BOOL)animated
 {
-    
     PFUser *currentUser = [PFUser currentUser];
     if (currentUser) {
         // do stuff with the user
+        [self.tableView reloadData];
     } else {
         LoginVC *loginVc = [self.storyboard instantiateViewControllerWithIdentifier:@"loginVc"];
         [self presentViewController:loginVc animated:YES completion:nil];
