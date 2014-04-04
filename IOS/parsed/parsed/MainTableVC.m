@@ -44,20 +44,22 @@
                                              selector:@selector(reloadData)
                                                  name:@"refreshTable"
                                                object:nil];
-    
-    PFQuery *query = [PFQuery queryWithClassName:@"Entry"];
-    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
-        if (!error) {
-            // The find succeeded.
-            NSLog(@"Successfully retrieved %d entryies.", objects.count);
-            // Do something with the found objects
-            self.entryObjects = objects;
-            [self.tableView reloadData];
-        } else {
-            // Log details of the failure
-            NSLog(@"Error: %@ %@", error, [error userInfo]);
-        }
-    }];
+    PFUser *currentUser = [PFUser currentUser];
+    if (currentUser) {
+        PFQuery *query = [PFQuery queryWithClassName:@"Entry"];
+        [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+            if (!error) {
+                // The find succeeded.
+                NSLog(@"Successfully retrieved %d entryies.", objects.count);
+                // Do something with the found objects
+                self.entryObjects = objects;
+                [self.tableView reloadData];
+            } else {
+                // Log details of the failure
+                NSLog(@"Error: %@ %@", error, [error userInfo]);
+            }
+        }];
+    }
     
     
 }
@@ -67,7 +69,6 @@
     PFUser *currentUser = [PFUser currentUser];
     if (currentUser) {
         // do stuff with the user
-        [self.tableView reloadData];
     } else {
         LoginVC *loginVc = [self.storyboard instantiateViewControllerWithIdentifier:@"loginVc"];
         [self presentViewController:loginVc animated:YES completion:nil];
