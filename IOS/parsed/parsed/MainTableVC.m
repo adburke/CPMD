@@ -32,6 +32,7 @@
 {
     [super viewDidLoad];
     
+    [PFUser enableAutomaticUser];
     PFACL *defaultACL = [PFACL ACL];
     // Optionally enable public read access while disabling public write access.
     // [defaultACL setPublicReadAccess:YES];
