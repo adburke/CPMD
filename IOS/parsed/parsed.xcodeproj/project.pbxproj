@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		96058F8518EE29BB00F3DB89 /* MainTableVC.m in Sources */ = {isa = PBXBuildFile; fileRef = 96058F8418EE29BB00F3DB89 /* MainTableVC.m */; };
+		96058F8818EE314B00F3DB89 /* CreateItemVC.m in Sources */ = {isa = PBXBuildFile; fileRef = 96058F8718EE314B00F3DB89 /* CreateItemVC.m */; };
+		96058F9118EE434B00F3DB89 /* EntryCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 96058F9018EE434B00F3DB89 /* EntryCell.m */; };
 		962D31D918ECECD1007D3520 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 962D31D818ECECD1007D3520 /* Foundation.framework */; };
 		962D31DB18ECECD1007D3520 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 962D31DA18ECECD1007D3520 /* CoreGraphics.framework */; };
 		962D31DD18ECECD1007D3520 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 962D31DC18ECECD1007D3520 /* UIKit.framework */; };
@@ -46,6 +49,12 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		96058F8318EE29BB00F3DB89 /* MainTableVC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MainTableVC.h; sourceTree = "<group>"; };
+		96058F8418EE29BB00F3DB89 /* MainTableVC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MainTableVC.m; sourceTree = "<group>"; };
+		96058F8618EE314B00F3DB89 /* CreateItemVC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CreateItemVC.h; sourceTree = "<group>"; };
+		96058F8718EE314B00F3DB89 /* CreateItemVC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CreateItemVC.m; sourceTree = "<group>"; };
+		96058F8F18EE434B00F3DB89 /* EntryCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EntryCell.h; path = ../EntryCell.h; sourceTree = "<group>"; };
+		96058F9018EE434B00F3DB89 /* EntryCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EntryCell.m; path = ../EntryCell.m; sourceTree = "<group>"; };
 		962D31D518ECECD1007D3520 /* parsed.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = parsed.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		962D31D818ECECD1007D3520 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		962D31DA18ECECD1007D3520 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -161,10 +170,16 @@
 				962D31E718ECECD1007D3520 /* AppDelegate.h */,
 				962D31E818ECECD1007D3520 /* AppDelegate.m */,
 				962D31EA18ECECD1007D3520 /* Main.storyboard */,
-				962D31ED18ECECD1007D3520 /* LoginVC.h */,
+				96058F8318EE29BB00F3DB89 /* MainTableVC.h */,
+				96058F8418EE29BB00F3DB89 /* MainTableVC.m */,
+				96058F8F18EE434B00F3DB89 /* EntryCell.h */,
+				96058F9018EE434B00F3DB89 /* EntryCell.m */,
 				962D321018ED191E007D3520 /* RegisterVC.h */,
 				962D321118ED191E007D3520 /* RegisterVC.m */,
+				962D31ED18ECECD1007D3520 /* LoginVC.h */,
 				962D31EE18ECECD1007D3520 /* LoginVC.m */,
+				96058F8618EE314B00F3DB89 /* CreateItemVC.h */,
+				96058F8718EE314B00F3DB89 /* CreateItemVC.m */,
 				962D31F018ECECD1007D3520 /* Images.xcassets */,
 				962D31DF18ECECD1007D3520 /* Supporting Files */,
 			);
@@ -307,7 +322,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				962D31EF18ECECD1007D3520 /* LoginVC.m in Sources */,
+				96058F8818EE314B00F3DB89 /* CreateItemVC.m in Sources */,
 				962D321218ED191E007D3520 /* RegisterVC.m in Sources */,
+				96058F9118EE434B00F3DB89 /* EntryCell.m in Sources */,
+				96058F8518EE29BB00F3DB89 /* MainTableVC.m in Sources */,
 				962D31E918ECECD1007D3520 /* AppDelegate.m in Sources */,
 				962D31E518ECECD1007D3520 /* main.m in Sources */,
 			);
@@ -524,6 +542,7 @@
 				962D320918ECECD1007D3520 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		962D320A18ECECD1007D3520 /* Build configuration list for PBXNativeTarget "parsedTests" */ = {
 			isa = XCConfigurationList;
@@ -532,6 +551,7 @@
 				962D320C18ECECD1007D3520 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

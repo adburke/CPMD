@@ -10,6 +10,9 @@
 
 @interface RegisterVC ()
 
+@property (strong, nonatomic) UIView *activityBg;
+@property (strong, nonatomic) UIActivityIndicatorView *activityView;
+
 @end
 
 @implementation RegisterVC
@@ -24,6 +27,7 @@
     
     // Add corner radius
     self.registerBg.layer.cornerRadius = 5;
+    self.greyBgLabel.layer.cornerRadius = 5;
     
     // Add just a bottom border to the email input
     CGRect layerFrame = CGRectMake(0, 0, self.emailInput.frame.size.width, self.emailInput.frame.size.height);
@@ -56,6 +60,24 @@
     switch (button.tag) {
         case 0:
             NSLog(@"Register Selected");
+            
+            [self startActivity];
+            
+            
+            BOOL emailTest = [self validEmail:self.emailInput.text];
+            BOOL passwordTest = [self validPassword:self.passwordInput.text];
+            BOOL confirmTest = [self validPassword:self.confirmPassInput.text];
+            BOOL matchTest = [self validePasswordMatch:self.passwordInput.text confirmPassStr:self.confirmPassInput.text];
+            
+            if (emailTest && matchTest) {
+                // Register with parse
+                [self parseRegistration:self.emailInput.text password:self.passwordInput.text];
+                
+            } else {
+                [self localErrorHandler:emailTest passwordTest:passwordTest confirmTest:confirmTest passwordMatch:matchTest];
+                [self stopActivity];
+            }
+            
             break;
         case 1:
             NSLog(@"Cancel Selected");
@@ -86,12 +108,21 @@
     }
 }
 
-- (BOOL)validPassword:(NSString*)passwordString
+- (BOOL)validPassword:(NSString*)passwordStr
 {
-    if([passwordString length]==0){
+    if([passwordStr length] == 0){
         return NO;
     } else {
         return YES;
+    }
+}
+
+- (BOOL)validePasswordMatch:(NSString*)passwordStr confirmPassStr:(NSString*)confirmPassStr
+{
+    if ([passwordStr isEqualToString:confirmPassStr] && passwordStr.length != 0 && confirmPassStr.length != 0) {
+        return YES;
+    } else {
+        return NO;
     }
 }
 
@@ -104,10 +135,104 @@
     self.view.superview.layer.masksToBounds = YES;
 }
 
+- (void)localErrorHandler:(BOOL)emailTest
+             passwordTest:(BOOL)passwordTest
+              confirmTest:(BOOL)confirmTest
+            passwordMatch:(BOOL)passwordMatch
+{
+    
+    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Validation Error" message:nil delegate:self cancelButtonTitle:@"Ok" otherButtonTitles:nil];
+    
+    NSLog(@"localErroHandler Launched");
+    if (!emailTest) {
+        alertView.message = @"Email input was invalid.";
+    } else if (!passwordTest){
+        alertView.message = @"Password field was empty";
+    } else if (!confirmTest){
+        alertView.message = @"Confirm password field was empty";
+    } else if (!passwordMatch) {
+        alertView.message = @"Password inputs do not match";
+    }
+    
+    [alertView show];
+}
+
+- (void)startActivity
+{
+    
+    CGRect screenFrame = [self screenFrameForOrientation:[[UIApplication sharedApplication] statusBarOrientation]];
+    self.activityBg = [[UIView alloc] initWithFrame:screenFrame];
+    self.activityBg.backgroundColor = [UIColor darkGrayColor];
+    self.activityBg.alpha = 0.9;
+    
+    [self.view addSubview:self.activityBg];
+    
+    
+    self.activityView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+    self.activityView.center = self.view.center;
+    [self.activityView startAnimating];
+    
+    [self.view addSubview:self.activityView];
+    
+}
+
+- (void)stopActivity
+{
+    [self.activityBg removeFromSuperview];
+    [self.activityView removeFromSuperview];
+}
+
+- (CGRect)screenFrameForOrientation:(UIInterfaceOrientation)orientation {
+    CGRect appFrame = [[UIScreen mainScreen] bounds];
+    CGRect screenFrame;
+    if (UIInterfaceOrientationIsLandscape(orientation))
+    {
+        //Handle landscape orientation
+        screenFrame =  CGRectMake(0.0, 0.0, appFrame.size.height, appFrame.size.width);
+    }
+    else {
+        //Handle portrait orientation
+        screenFrame = CGRectMake(0.0, 0.0, appFrame.size.width, appFrame.size.height);
+    }
+    return screenFrame;
+}
+
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
+}
+
+- (void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
+{
+    if (self.activityBg)
+    {
+        CGRect screenFrame = [self screenFrameForOrientation:toInterfaceOrientation];
+        [self.activityBg setFrame:screenFrame];
+        
+        self.activityView.center = self.view.center;
+    }
+}
+
+- (void)parseRegistration:(NSString*)emailStr password:(NSString*)passwordStr
+{
+    PFUser *user = [PFUser user];
+    user.username = emailStr;
+    user.password = passwordStr;
+    user.email = emailStr;
+    
+    [user signUpInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+        if (!error) {
+            // Hooray! Let them use the app now.
+            [self stopActivity];
+            [[[self presentingViewController] presentingViewController] dismissViewControllerAnimated:YES completion:nil];
+        } else {
+            [self stopActivity];
+            NSString *errorString = [error userInfo][@"error"];
+            UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Validation Error" message:errorString delegate:self cancelButtonTitle:@"Ok" otherButtonTitles:nil];
+            [alertView show];
+        }
+    }];
 }
 
 /*

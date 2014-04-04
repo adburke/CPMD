@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <Parse/Parse.h>
 
 @interface RegisterVC : UIViewController
 
@@ -14,6 +15,8 @@
 @property (weak, nonatomic) IBOutlet UITextField *passwordInput;
 @property (weak, nonatomic) IBOutlet UITextField *confirmPassInput;
 @property (weak, nonatomic) IBOutlet UITextField *emailInput;
+
+@property (weak, nonatomic) IBOutlet UILabel *greyBgLabel;
 
 @property (weak, nonatomic) IBOutlet UIButton *cancelBtn;
 @property (weak, nonatomic) IBOutlet UIButton *registerBtn;

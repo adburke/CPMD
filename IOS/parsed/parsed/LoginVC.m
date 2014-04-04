@@ -11,9 +11,13 @@
 
 @interface LoginVC ()
 
+@property (strong, nonatomic) UIView *activityBg;
+@property (strong, nonatomic) UIActivityIndicatorView *activityView;
+
 @end
 
 @implementation LoginVC
+
 
 - (void)viewDidLoad
 {
@@ -47,6 +51,19 @@
     switch (button.tag) {
         case 0:
             NSLog(@"Login Selected");
+            
+            [self startActivity];
+            
+            BOOL emailTest = [self validEmail:self.emailInput.text];
+            BOOL passwordTest = [self validPassword:self.passwordInput.text];
+            
+            if (emailTest && passwordTest) {
+                [self parseLogin:self.emailInput.text password:self.passwordInput.text];
+            } else {
+                [self localErrorHandler:emailTest passwordTest:passwordTest];
+                [self stopActivity];
+            }
+            
             break;
         case 1:
             NSLog(@"Register Selected");
@@ -59,17 +76,70 @@
     }
 }
 
-- (BOOL)validEmail:(NSString*)emailString
+- (void)localErrorHandler:(BOOL)emailTest passwordTest:(BOOL)passwordTest
 {
     
-    if([emailString length]==0){
+    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Validation Error" message:nil delegate:self cancelButtonTitle:@"Ok" otherButtonTitles:nil];
+    
+    NSLog(@"localErroHandler Launched");
+    if (!emailTest && !passwordTest) {
+        alertView.message = @"Email input was invalid and password input was empty.";
+        [alertView show];
+    }
+}
+
+
+- (CGRect)screenFrameForOrientation:(UIInterfaceOrientation)orientation {
+    CGRect appFrame = [[UIScreen mainScreen] bounds];
+    CGRect screenFrame;
+    if (UIInterfaceOrientationIsLandscape(orientation))
+    {
+        //Handle landscape orientation
+        screenFrame =  CGRectMake(0.0, 0.0, appFrame.size.height, appFrame.size.width);
+    }
+    else {
+        //Handle portrait orientation
+        screenFrame = CGRectMake(0.0, 0.0, appFrame.size.width, appFrame.size.height);
+    }
+    return screenFrame;
+}
+
+- (void)startActivity
+{
+    
+    CGRect screenFrame = [self screenFrameForOrientation:[[UIApplication sharedApplication] statusBarOrientation]];
+    self.activityBg = [[UIView alloc] initWithFrame:screenFrame];
+    self.activityBg.backgroundColor = [UIColor darkGrayColor];
+    self.activityBg.alpha = 0.9;
+    
+    [self.view addSubview:self.activityBg];
+    
+    
+    self.activityView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+    self.activityView.center = CGPointMake( screenFrame.size.width / 2, screenFrame.size.height / 2);
+    [self.activityView startAnimating];
+    
+    [self.view addSubview:self.activityView];
+    
+}
+
+- (void)stopActivity
+{
+    [self.activityBg removeFromSuperview];
+    [self.activityView removeFromSuperview];
+}
+
+- (BOOL)validEmail:(NSString*)emailStr
+{
+    
+    if([emailStr length]==0){
         return NO;
     }
     
     NSString *regExPattern = @"[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}";
     
     NSRegularExpression *regEx = [[NSRegularExpression alloc] initWithPattern:regExPattern options:NSRegularExpressionCaseInsensitive error:nil];
-    NSUInteger regExMatches = [regEx numberOfMatchesInString:emailString options:0 range:NSMakeRange(0, [emailString length])];
+    NSUInteger regExMatches = [regEx numberOfMatchesInString:emailStr options:0 range:NSMakeRange(0, [emailStr length])];
     
     NSLog(@"%i", regExMatches);
     if (regExMatches == 0) {
@@ -79,14 +149,45 @@
     }
 }
 
-- (BOOL)validPassword:(NSString*)passwordString
+- (BOOL)validPassword:(NSString*)passwordStr
 {
-    if([passwordString length]==0){
+    if([passwordStr length]==0){
         return NO;
     } else {
         return YES;
     }
 }
+
+- (void)parseLogin:(NSString*)emailStr password:(NSString*)passwordStr
+{
+    
+    
+    [PFUser logInWithUsernameInBackground:emailStr password:passwordStr block:^(PFUser *user, NSError *error)
+    {
+        if (user) {
+            // Do stuff after successful login.
+            NSLog(@"Login Success");
+            [self stopActivity];
+            [self dismissViewControllerAnimated:YES completion:nil];
+        } else {
+            // The login failed. Check error to see why.
+            NSLog(@"Login Fail");
+            [self stopActivity];
+        }
+    }];
+}
+
+- (void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
+{
+    if (self.activityBg)
+    {
+        CGRect screenFrame = [self screenFrameForOrientation:toInterfaceOrientation];
+        [self.activityBg setFrame:screenFrame];
+        
+        self.activityView.center = CGPointMake( screenFrame.size.width / 2, screenFrame.size.height / 2);
+    }
+}
+
 
 - (void)didReceiveMemoryWarning
 {
