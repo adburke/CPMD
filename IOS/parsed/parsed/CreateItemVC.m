@@ -124,6 +124,7 @@
     entry[@"message"] = messageStr;
     entry[@"name"] = nameStr;
     entry[@"randomNumber"] = number;
+    entry.ACL = [PFACL ACLWithUser:[PFUser currentUser]];
     [entry saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
         
         if (!error) {

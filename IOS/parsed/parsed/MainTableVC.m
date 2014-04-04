@@ -32,6 +32,11 @@
 {
     [super viewDidLoad];
     
+    PFACL *defaultACL = [PFACL ACL];
+    // Optionally enable public read access while disabling public write access.
+    // [defaultACL setPublicReadAccess:YES];
+    [PFACL setDefaultACL:defaultACL withAccessForCurrentUser:YES];
+    
     self.entryObjects = [[NSArray alloc] init];
     
     // Uncomment the following line to preserve selection between presentations.

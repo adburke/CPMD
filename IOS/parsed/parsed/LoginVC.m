@@ -173,6 +173,9 @@
             // The login failed. Check error to see why.
             NSLog(@"Login Fail");
             [self stopActivity];
+            UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Login Failure" message:@"Account not found or password incorrect" delegate:self cancelButtonTitle:@"Ok" otherButtonTitles:nil];
+            [alertView show];
+            
         }
     }];
 }
