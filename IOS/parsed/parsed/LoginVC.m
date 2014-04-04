@@ -8,6 +8,7 @@
 
 #import "LoginVC.h"
 #import <QuartzCore/QuartzCore.h>
+#import "MainTableVC.h"
 
 @interface LoginVC ()
 
@@ -169,6 +170,7 @@
             NSLog(@"Login Success");
             [self stopActivity];
             [self dismissViewControllerAnimated:YES completion:nil];
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshTable" object:self];
         } else {
             // The login failed. Check error to see why.
             NSLog(@"Login Fail");
