@@ -36,6 +36,7 @@
 		962D322818ED2FA6007D3520 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 962D322718ED2FA6007D3520 /* StoreKit.framework */; };
 		962D322A18ED2FB1007D3520 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 962D322918ED2FB1007D3520 /* Security.framework */; };
 		962D322C18ED2FBF007D3520 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 962D322B18ED2FBF007D3520 /* SystemConfiguration.framework */; };
+		965F00C318F384EE00ED4FBD /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = 965F00C218F384EE00ED4FBD /* Reachability.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -77,7 +78,7 @@
 		962D320E18ED038B007D3520 /* skulls.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = skulls.png; sourceTree = "<group>"; };
 		962D321018ED191E007D3520 /* RegisterVC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RegisterVC.h; sourceTree = "<group>"; };
 		962D321118ED191E007D3520 /* RegisterVC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RegisterVC.m; sourceTree = "<group>"; };
-		962D321918ED2EAE007D3520 /* Parse.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Parse.framework; path = ../../../../../../Development/Parse/IOS/Parse.framework; sourceTree = "<group>"; };
+		962D321918ED2EAE007D3520 /* Parse.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Parse.framework; path = ../../../../../../Development/Parse/IOS/Parse.framework; sourceTree = SOURCE_ROOT; };
 		962D321B18ED2F37007D3520 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		962D321D18ED2F42007D3520 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
 		962D321F18ED2F54007D3520 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
@@ -87,6 +88,8 @@
 		962D322718ED2FA6007D3520 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		962D322918ED2FB1007D3520 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		962D322B18ED2FBF007D3520 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
+		965F00C118F384EE00ED4FBD /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
+		965F00C218F384EE00ED4FBD /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -189,6 +192,8 @@
 		962D31DF18ECECD1007D3520 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				965F00C118F384EE00ED4FBD /* Reachability.h */,
+				965F00C218F384EE00ED4FBD /* Reachability.m */,
 				962D31E018ECECD1007D3520 /* parsed-Info.plist */,
 				962D31E118ECECD1007D3520 /* InfoPlist.strings */,
 				962D31E418ECECD1007D3520 /* main.m */,
@@ -323,6 +328,7 @@
 			files = (
 				962D31EF18ECECD1007D3520 /* LoginVC.m in Sources */,
 				96058F8818EE314B00F3DB89 /* CreateItemVC.m in Sources */,
+				965F00C318F384EE00ED4FBD /* Reachability.m in Sources */,
 				962D321218ED191E007D3520 /* RegisterVC.m in Sources */,
 				96058F9118EE434B00F3DB89 /* EntryCell.m in Sources */,
 				96058F8518EE29BB00F3DB89 /* MainTableVC.m in Sources */,
