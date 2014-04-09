@@ -60,11 +60,26 @@
 {
     // Save local data
     [self.entryArray addObject:entry];
-    [NSKeyedArchiver archiveRootObject:self.entryArray toFile:self.filePath];
+    BOOL saveStatus = [NSKeyedArchiver archiveRootObject:self.entryArray toFile:self.filePath];
     
     if (!isNewCache) {
         // Save to Parse
         [self saveToParse:entry];
+    }
+    
+    // Used to get the top most visible VC in this case CreateItemVC to use as delegate of our alertView
+    UIViewController *topController = [UIApplication sharedApplication].keyWindow.rootViewController;
+    while (topController.presentedViewController) {
+        topController = topController.presentedViewController;
+    }
+    
+    if (saveStatus) {
+        // Show success message
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Upload Complete" message:@"Successfully saved entry" delegate:topController cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        [alert show];
+    } else {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Save Failed" message:@"Failed to save entry" delegate:topController cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
+        [alert show];
     }
     
     
@@ -72,12 +87,6 @@
 
 - (void)saveToParse:(EntryData*)entry
 {
-    
-    // Used to get the top most visible VC in this case CreateItemVC to use as delegate of our alertView
-    UIViewController *topController = [UIApplication sharedApplication].keyWindow.rootViewController;
-    while (topController.presentedViewController) {
-        topController = topController.presentedViewController;
-    }
     
     // Parse object creation
     PFObject *entryParse = [PFObject objectWithClassName:@"Entry"];
@@ -98,7 +107,7 @@
                 [query getFirstObjectInBackgroundWithBlock:^(PFObject *object, NSError *error) {
                     if (!error) {
                         // The find succeeded.
-                        NSLog(@"Successfully retrieved entry.");
+                        NSLog(@"Successfully saved entry to Parse DB.");
                         
                         [self updateCacheIdData:object];
                         
@@ -108,13 +117,9 @@
                     }
                 }];
                 
-                // Show success message
-                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Upload Complete" message:@"Successfully saved entry" delegate:topController cancelButtonTitle:@"OK" otherButtonTitles:nil];
-                [alert show];
-                
             } else {
-                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Upload Failure" message:[error localizedDescription] delegate:topController cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
-                [alert show];
+                
+                NSLog(@"Error: %@", [error localizedDescription]);
                 
             }
             
@@ -128,7 +133,7 @@
                 [query getFirstObjectInBackgroundWithBlock:^(PFObject *object, NSError *error) {
                     if (!error) {
                         // The find succeeded.
-                        NSLog(@"Successfully retrieved entry.");
+                        NSLog(@"Successfully saved entry to Parse DB.");
                         
                         [self updateCacheIdData:object];
                         
@@ -159,6 +164,7 @@
     for (EntryData *entryCacheObj in self.entryArray) {
         if ([[entry getUUID] isEqualToString:[entryCacheObj getUUID]]) {
             [self.entryArray removeObject:entryCacheObj];
+            break;
         }
     }
     [NSKeyedArchiver archiveRootObject:self.entryArray toFile:self.filePath];
@@ -170,7 +176,7 @@
         [query getFirstObjectInBackgroundWithBlock:^(PFObject *object, NSError *error) {
             if (!error) {
                 // The find succeeded.
-                NSLog(@"Successfully retrieved entry.");
+                NSLog(@"Successfully deleted entry from Parse.");
                 
                 if (self.appDelegate.isNetworkActive) {
                     [object deleteInBackground];

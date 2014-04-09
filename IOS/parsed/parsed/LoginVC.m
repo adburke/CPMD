@@ -15,6 +15,7 @@
 
 @property (strong, nonatomic) UIView *activityBg;
 @property (strong, nonatomic) UIActivityIndicatorView *activityView;
+@property (nonatomic, strong) AppDelegate *appDelegate;
 
 @end
 
@@ -25,6 +26,8 @@
 {
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
+    
+    self.appDelegate = (AppDelegate*)[[UIApplication sharedApplication] delegate];
     
     UIImage *bgImage = [UIImage imageNamed:@"skulls.png"];
     self.view.backgroundColor = [UIColor colorWithPatternImage:bgImage];
@@ -53,14 +56,18 @@
     switch (button.tag) {
         case 0:
             NSLog(@"Login Selected");
-            [self checkConnectivity];
             [self startActivity];
             
             BOOL emailTest = [self validEmail:self.emailInput.text];
             BOOL passwordTest = [self validPassword:self.passwordInput.text];
             
             if (emailTest && passwordTest) {
-                [self parseLogin:self.emailInput.text password:self.passwordInput.text];
+                if (self.appDelegate.isNetworkActive) {
+                    [self parseLogin:self.emailInput.text password:self.passwordInput.text];
+                } else {
+                    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Connection Error" message:@"Internet connection  appears to be down." delegate:self cancelButtonTitle:@"Ok" otherButtonTitles:nil];
+                    [alertView show];
+                }
             } else {
                 [self localErrorHandler:emailTest passwordTest:passwordTest];
                 [self stopActivity];
@@ -90,15 +97,15 @@
     }
 }
 
-- (void)checkConnectivity
-{
-    AppDelegate* appDelegate = (AppDelegate*)[[UIApplication sharedApplication] delegate];
-    if (appDelegate.isNetworkActive) {
-        NSLog(@"Network is active");
-    } else {
-        NSLog(@"Network is not active");
-    }
-}
+//- (void)checkConnectivity
+//{
+//    AppDelegate* appDelegate = (AppDelegate*)[[UIApplication sharedApplication] delegate];
+//    if (appDelegate.isNetworkActive) {
+//        NSLog(@"Network is active");
+//    } else {
+//        NSLog(@"Network is not active");
+//    }
+//}
 
 - (CGRect)screenFrameForOrientation:(UIInterfaceOrientation)orientation {
     CGRect appFrame = [[UIScreen mainScreen] bounds];
@@ -152,7 +159,7 @@
     NSRegularExpression *regEx = [[NSRegularExpression alloc] initWithPattern:regExPattern options:NSRegularExpressionCaseInsensitive error:nil];
     NSUInteger regExMatches = [regEx numberOfMatchesInString:emailStr options:0 range:NSMakeRange(0, [emailStr length])];
     
-    NSLog(@"%i", regExMatches);
+    //NSLog(@"%i", regExMatches);
     if (regExMatches == 0) {
         return NO;
     } else {
@@ -190,6 +197,12 @@
             
         }
     }];
+}
+
+- (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex
+{
+    [self stopActivity];
+    
 }
 
 - (void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration

@@ -9,7 +9,7 @@
 #import <UIKit/UIKit.h>
 #import <Parse/Parse.h>
 
-@interface LoginVC : UIViewController
+@interface LoginVC : UIViewController <UIAlertViewDelegate>
 
 @property (weak, nonatomic) IBOutlet UILabel *loginBg;
 @property (weak, nonatomic) IBOutlet UILabel *loginInputBg;
