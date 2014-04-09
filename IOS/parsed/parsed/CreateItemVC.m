@@ -8,14 +8,19 @@
 
 #import "CreateItemVC.h"
 #import <Parse/Parse.h>
+#import "AppDelegate.h"
+#import "EntryData.h"
+#import "EntryManager.h"
 
 @interface CreateItemVC ()
 
-@property (strong, nonatomic) UIView *activityBg;
-@property (strong, nonatomic) UIActivityIndicatorView *activityView;
-@property (assign, nonatomic) BOOL messageCheck;
-@property (assign, nonatomic) BOOL nameCheck;
-@property (assign, nonatomic) BOOL numberCheck;
+@property (nonatomic, strong) UIView *activityBg;
+@property (nonatomic, strong) UIActivityIndicatorView *activityView;
+@property (nonatomic, assign) BOOL messageCheck;
+@property (nonatomic, assign) BOOL nameCheck;
+@property (nonatomic, assign) BOOL numberCheck;
+@property (nonatomic, strong) AppDelegate *appDelegate;
+@property (nonatomic, strong) EntryManager *entryManager;
 
 
 @end
@@ -35,6 +40,10 @@
 {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
+    
+    // Get reference to appdelegate for network connectivity check
+    self.appDelegate = (AppDelegate*)[[UIApplication sharedApplication] delegate];
+    self.entryManager = [EntryManager sharedInstance];
     
     UIImage *bgImage = [UIImage imageNamed:@"skulls.png"];
     self.view.backgroundColor = [UIColor colorWithPatternImage:bgImage];
@@ -75,7 +84,7 @@
     UIButton *button = (UIButton*)sender;
     switch (button.tag) {
         {case 0:
-            NSLog(@"Register Selected");
+            NSLog(@"Create Selected");
             
             [self startActivity];
 
@@ -120,28 +129,37 @@
 
 - (void)createItem:(NSString*)messageStr nameStr:(NSString*)nameStr number:(NSNumber*)number
 {
-    PFObject *entry = [PFObject objectWithClassName:@"Entry"];
-    entry[@"message"] = messageStr;
-    entry[@"name"] = nameStr;
-    entry[@"randomNumber"] = number;
-    entry.ACL = [PFACL ACLWithUser:[PFUser currentUser]];
-    [entry saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
-        
-        if (!error) {
-            // Show success message
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Upload Complete" message:@"Successfully saved entry" delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
-            [alert show];
-            
-            
-        } else {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Upload Failure" message:[error localizedDescription] delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
-            [alert show];
-            
-        }
-        
-    }];
+    // Local object creation
+    EntryData *entryLocal = [[EntryData alloc] initWithMessage:messageStr name:nameStr number:number];
     
+    [self.entryManager saveEntryData:entryLocal];
 }
+
+//- (void)saveToParse:(PFObject*)entryParse
+//{
+//    
+//    if (self.appDelegate.isNetworkActive) {
+//        // Save now
+//        [entryParse saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+//            
+//            if (!error) {
+//                // Show success message
+//                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Upload Complete" message:@"Successfully saved entry" delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
+//                [alert show];
+//                
+//            } else {
+//                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Upload Failure" message:[error localizedDescription] delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
+//                [alert show];
+//                
+//            }
+//            
+//        }];
+//    } else {
+//        // Save later when network is re-established
+//        [entryParse saveEventually];
+//        
+//    }
+//}
 
 - (BOOL)validateMessage:(NSString*)messageStr
 {

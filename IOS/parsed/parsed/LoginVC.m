@@ -9,6 +9,7 @@
 #import "LoginVC.h"
 #import <QuartzCore/QuartzCore.h>
 #import "MainTableVC.h"
+#import "AppDelegate.h"
 
 @interface LoginVC ()
 
@@ -52,7 +53,7 @@
     switch (button.tag) {
         case 0:
             NSLog(@"Login Selected");
-            
+            [self checkConnectivity];
             [self startActivity];
             
             BOOL emailTest = [self validEmail:self.emailInput.text];
@@ -89,6 +90,15 @@
     }
 }
 
+- (void)checkConnectivity
+{
+    AppDelegate* appDelegate = (AppDelegate*)[[UIApplication sharedApplication] delegate];
+    if (appDelegate.isNetworkActive) {
+        NSLog(@"Network is active");
+    } else {
+        NSLog(@"Network is not active");
+    }
+}
 
 - (CGRect)screenFrameForOrientation:(UIInterfaceOrientation)orientation {
     CGRect appFrame = [[UIScreen mainScreen] bounds];

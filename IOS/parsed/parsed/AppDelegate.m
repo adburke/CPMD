@@ -8,6 +8,7 @@
 
 #import "AppDelegate.h"
 #import <Parse/Parse.h>
+#import "Reachability.h"
 
 @implementation AppDelegate
 
@@ -24,7 +25,26 @@
      UIRemoteNotificationTypeAlert|
      UIRemoteNotificationTypeSound];
     
-    // Override point for customization after application launch.
+    // Network connectivity check
+    Reachability* reach = [Reachability reachabilityWithHostname:@"www.parse.com"];
+    // Set the blocks
+    reach.reachableBlock = ^(Reachability*reach)
+    {
+        NSLog(@"REACHABLE!");
+        self.isNetworkActive = YES;
+    };
+    
+    reach.unreachableBlock = ^(Reachability*reach)
+    {
+        NSLog(@"UNREACHABLE!");
+        self.isNetworkActive = NO;
+    };
+    
+    // Start the notifier, which will cause the reachability object to retain itself!
+    [reach startNotifier];
+    
+    
+    
     return YES;
 }
 

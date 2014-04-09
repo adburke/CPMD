@@ -11,5 +11,7 @@
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
+@property (assign, nonatomic) BOOL isNetworkActive;
+@property (strong, nonatomic) NSMutableArray *localEntryArray;
 
 @end

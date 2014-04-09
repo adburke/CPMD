@@ -10,10 +10,14 @@
 #import "LoginVC.h"
 #import "EntryCell.h"
 #import <Parse/Parse.h>
+#import "EntryManager.h"
+#import "AppDelegate.h"
 
 @interface MainTableVC ()
 
-@property (nonatomic, strong) NSArray* entryObjects;
+@property (nonatomic, strong) NSArray *entryObjects;
+@property (nonatomic, strong) EntryManager *entryManager;
+@property (nonatomic, strong) AppDelegate *appDelegate;
 
 @end
 
@@ -42,22 +46,35 @@
                                              selector:@selector(reloadData)
                                                  name:@"refreshTable"
                                                object:nil];
+    
+    
+    self.appDelegate = (AppDelegate*)[[UIApplication sharedApplication] delegate];
+    self.entryManager = [EntryManager sharedInstance];
+    
+    self.entryObjects = [[NSArray alloc] init];
+    
     PFUser *currentUser = [PFUser currentUser];
     if (currentUser) {
-        self.entryObjects = [[NSArray alloc] init];
-        PFQuery *query = [PFQuery queryWithClassName:@"Entry"];
-        [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
-            if (!error) {
-                // The find succeeded.
-                NSLog(@"Successfully retrieved %d entryies.", objects.count);
-                // Do something with the found objects
-                self.entryObjects = objects;
-                [self.tableView reloadData];
-            } else {
-                // Log details of the failure
-                NSLog(@"Error: %@ %@", error, [error userInfo]);
-            }
-        }];
+        // Check if local data is available and load that first else check on Parse.com
+        if (self.entryManager.entryArray != NULL) {
+            self.entryObjects = [self.entryManager.entryArray copy];
+            [self.tableView reloadData];
+        } else if (self.appDelegate.isNetworkActive) {
+            PFQuery *query = [PFQuery queryWithClassName:@"Entry"];
+            [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+                if (!error) {
+                    // The find succeeded.
+                    NSLog(@"Successfully retrieved %d entryies.", objects.count);
+                    // Do something with the found objects
+                    self.entryObjects = [objects copy];
+                    [self.tableView reloadData];
+                } else {
+                    // Log details of the failure
+                    NSLog(@"Error: %@ %@", error, [error userInfo]);
+                }
+            }];
+            
+        }
     }
     
     
@@ -66,9 +83,7 @@
 - (void)viewDidAppear:(BOOL)animated
 {
     PFUser *currentUser = [PFUser currentUser];
-    if (currentUser) {
-        // do stuff with the user
-    } else {
+    if (!currentUser) {
         self.entryObjects = nil;
         LoginVC *loginVc = [self.storyboard instantiateViewControllerWithIdentifier:@"loginVc"];
         [self presentViewController:loginVc animated:YES completion:nil];
@@ -83,22 +98,25 @@
 
 - (void)reloadData
 {
-    if (self.entryObjects == nil) {
-        self.entryObjects = [[NSArray alloc] init];
+    if (self.entryManager.entryArray != NULL) {
+        self.entryObjects = [self.entryManager.entryArray copy];
+        [self.tableView reloadData];
+    } else if (self.appDelegate.isNetworkActive) {
+        PFQuery *query = [PFQuery queryWithClassName:@"Entry"];
+        [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+            if (!error) {
+                // The find succeeded.
+                NSLog(@"Successfully retrieved %d entryies.", objects.count);
+                // Do something with the found objects
+                self.entryObjects = [objects copy];
+                [self.tableView reloadData];
+            } else {
+                // Log details of the failure
+                NSLog(@"Error: %@ %@", error, [error userInfo]);
+            }
+        }];
+        
     }
-    PFQuery *query = [PFQuery queryWithClassName:@"Entry"];
-    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
-        if (!error) {
-            // The find succeeded.
-            NSLog(@"Successfully retrieved %d entryies.", objects.count);
-            // Do something with the found objects
-            self.entryObjects = objects;
-            [self.tableView reloadData];
-        } else {
-            // Log details of the failure
-            NSLog(@"Error: %@ %@", error, [error userInfo]);
-        }
-    }];
 
 }
 
@@ -147,10 +165,17 @@
     static NSString *CellIdentifier = @"EntryCell";
     EntryCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
     if (cell) {
-        cell.name.text = [self.entryObjects[indexPath.row] objectForKey:@"name"];
-        cell.message.text = [self.entryObjects[indexPath.row] objectForKey:@"message"];
-        NSNumber *number = [self.entryObjects[indexPath.row] objectForKey:@"randomNumber"];
-        cell.number.text =[number stringValue];
+        if (self.entryManager.entryArray != NULL) {
+            cell.name.text = [self.entryObjects[indexPath.row] valueForKey:@"name"];
+            cell.message.text = [self.entryObjects[indexPath.row] valueForKey:@"message"];
+            NSNumber *number = [self.entryObjects[indexPath.row] valueForKey:@"number"];
+            cell.number.text =[number stringValue];
+        } else {
+            cell.name.text = [self.entryObjects[indexPath.row] objectForKey:@"name"];
+            cell.message.text = [self.entryObjects[indexPath.row] objectForKey:@"message"];
+            NSNumber *number = [self.entryObjects[indexPath.row] objectForKey:@"number"];
+            cell.number.text =[number stringValue];
+        }
     }
     
     return cell;
@@ -166,7 +191,6 @@
 }
 */
 
-/*
 // Override to support editing the table view.
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
 {
@@ -177,7 +201,7 @@
         // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
     }   
 }
-*/
+
 
 /*
 // Override to support rearranging the table view.

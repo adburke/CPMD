@@ -37,6 +37,8 @@
 		962D322A18ED2FB1007D3520 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 962D322918ED2FB1007D3520 /* Security.framework */; };
 		962D322C18ED2FBF007D3520 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 962D322B18ED2FBF007D3520 /* SystemConfiguration.framework */; };
 		965F00C318F384EE00ED4FBD /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = 965F00C218F384EE00ED4FBD /* Reachability.m */; };
+		96E938B418F49B07004BB88D /* EntryData.m in Sources */ = {isa = PBXBuildFile; fileRef = 96E938B318F49B07004BB88D /* EntryData.m */; };
+		96E938B718F4DB5A004BB88D /* EntryManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 96E938B618F4DB5A004BB88D /* EntryManager.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -78,7 +80,7 @@
 		962D320E18ED038B007D3520 /* skulls.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = skulls.png; sourceTree = "<group>"; };
 		962D321018ED191E007D3520 /* RegisterVC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RegisterVC.h; sourceTree = "<group>"; };
 		962D321118ED191E007D3520 /* RegisterVC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RegisterVC.m; sourceTree = "<group>"; };
-		962D321918ED2EAE007D3520 /* Parse.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Parse.framework; path = ../../../../../../Development/Parse/IOS/Parse.framework; sourceTree = SOURCE_ROOT; };
+		962D321918ED2EAE007D3520 /* Parse.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Parse.framework; sourceTree = SOURCE_ROOT; };
 		962D321B18ED2F37007D3520 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		962D321D18ED2F42007D3520 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
 		962D321F18ED2F54007D3520 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
@@ -90,6 +92,10 @@
 		962D322B18ED2FBF007D3520 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		965F00C118F384EE00ED4FBD /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
 		965F00C218F384EE00ED4FBD /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
+		96E938B218F49B07004BB88D /* EntryData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EntryData.h; sourceTree = "<group>"; };
+		96E938B318F49B07004BB88D /* EntryData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EntryData.m; sourceTree = "<group>"; };
+		96E938B518F4DB5A004BB88D /* EntryManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EntryManager.h; sourceTree = "<group>"; };
+		96E938B618F4DB5A004BB88D /* EntryManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EntryManager.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -185,6 +191,10 @@
 				96058F8718EE314B00F3DB89 /* CreateItemVC.m */,
 				962D31F018ECECD1007D3520 /* Images.xcassets */,
 				962D31DF18ECECD1007D3520 /* Supporting Files */,
+				96E938B218F49B07004BB88D /* EntryData.h */,
+				96E938B318F49B07004BB88D /* EntryData.m */,
+				96E938B518F4DB5A004BB88D /* EntryManager.h */,
+				96E938B618F4DB5A004BB88D /* EntryManager.m */,
 			);
 			path = parsed;
 			sourceTree = "<group>";
@@ -326,9 +336,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				96E938B718F4DB5A004BB88D /* EntryManager.m in Sources */,
 				962D31EF18ECECD1007D3520 /* LoginVC.m in Sources */,
 				96058F8818EE314B00F3DB89 /* CreateItemVC.m in Sources */,
 				965F00C318F384EE00ED4FBD /* Reachability.m in Sources */,
+				96E938B418F49B07004BB88D /* EntryData.m in Sources */,
 				962D321218ED191E007D3520 /* RegisterVC.m in Sources */,
 				96058F9118EE434B00F3DB89 /* EntryCell.m in Sources */,
 				96058F8518EE29BB00F3DB89 /* MainTableVC.m in Sources */,
@@ -399,6 +411,7 @@
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -438,6 +451,7 @@
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = YES;
 				ENABLE_NS_ASSERTIONS = NO;
