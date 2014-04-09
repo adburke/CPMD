@@ -36,6 +36,7 @@
 - (id)init {
     if (self = [super init]) {
         self.entryArray = [[NSMutableArray alloc] init];
+        self.appDelegate = (AppDelegate*)[[UIApplication sharedApplication] delegate];
         if ([self getEntryData] != NULL) {
             self.entryArray = [[self getEntryData] mutableCopy];
         }
@@ -71,7 +72,6 @@
 
 - (void)saveToParse:(EntryData*)entry
 {
-    self.appDelegate = (AppDelegate*)[[UIApplication sharedApplication] delegate];
     
     // Used to get the top most visible VC in this case CreateItemVC to use as delegate of our alertView
     UIViewController *topController = [UIApplication sharedApplication].keyWindow.rootViewController;
@@ -92,6 +92,22 @@
         [entryParse saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
             
             if (!error) {
+                
+                PFQuery *query = [PFQuery queryWithClassName:@"Entry"];
+                [query whereKey:@"UUID" equalTo:[entryParse objectForKey:@"UUID"]];
+                [query getFirstObjectInBackgroundWithBlock:^(PFObject *object, NSError *error) {
+                    if (!error) {
+                        // The find succeeded.
+                        NSLog(@"Successfully retrieved entry.");
+                        
+                        [self updateCacheIdData:object];
+                        
+                    } else {
+                        // Log details of the failure
+                        NSLog(@"Error: %@ %@", error, [error userInfo]);
+                    }
+                }];
+                
                 // Show success message
                 UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Upload Complete" message:@"Successfully saved entry" delegate:topController cancelButtonTitle:@"OK" otherButtonTitles:nil];
                 [alert show];
@@ -105,7 +121,26 @@
         }];
     } else {
         // Save later when network is re-established
-        [entryParse saveEventually];
+        [entryParse saveEventually:^(BOOL succeeded, NSError *error) {
+            if (!error) {
+                PFQuery *query = [PFQuery queryWithClassName:@"Entry"];
+                [query whereKey:@"UUID" equalTo:[entryParse objectForKey:@"UUID"]];
+                [query getFirstObjectInBackgroundWithBlock:^(PFObject *object, NSError *error) {
+                    if (!error) {
+                        // The find succeeded.
+                        NSLog(@"Successfully retrieved entry.");
+                        
+                        [self updateCacheIdData:object];
+                        
+                    } else {
+                        // Log details of the failure
+                        NSLog(@"Error: %@ %@", error, [error userInfo]);
+                    }
+                }];
+            } else {
+                NSLog(@"Error: %@ %@", error, [error userInfo]);
+            }
+        }];
         
     }
 }
@@ -113,13 +148,56 @@
 - (void)createDataFromParse:(NSArray*)parseObjects
 {
     for (PFObject *object in parseObjects) {
-        EntryData *entry = [[EntryData alloc] initWithUUID:[object objectForKey:@"UUID"] message:[object objectForKey:@"message"] name:[object objectForKey:@"name"] number:[object objectForKey:@"number"]];
+        EntryData *entry = [[EntryData alloc] initWithUUID:[object objectForKey:@"UUID"] message:[object objectForKey:@"message"] name:[object objectForKey:@"name"] number:[object objectForKey:@"number"] parseObjId:object.objectId];
         [self saveEntryData:entry isNewCache:YES];
     }
 }
 
 - (void)deleteEntryData:(EntryData*)entry
 {
+    // Delete item from local cache
+    for (EntryData *entryCacheObj in self.entryArray) {
+        if ([[entry getUUID] isEqualToString:[entryCacheObj getUUID]]) {
+            [self.entryArray removeObject:entryCacheObj];
+        }
+    }
+    [NSKeyedArchiver archiveRootObject:self.entryArray toFile:self.filePath];
+    
+    // Delete item from Parse
+    if (self.appDelegate.isNetworkActive) {
+        PFQuery *query = [PFQuery queryWithClassName:@"Entry"];
+        [query whereKey:@"UUID" equalTo:[entry getUUID]];
+        [query getFirstObjectInBackgroundWithBlock:^(PFObject *object, NSError *error) {
+            if (!error) {
+                // The find succeeded.
+                NSLog(@"Successfully retrieved entry.");
+                
+                if (self.appDelegate.isNetworkActive) {
+                    [object deleteInBackground];
+                } else {
+                    [object deleteEventually];
+                }
+                
+                
+            } else {
+                // Log details of the failure
+                NSLog(@"Error: %@ %@", error, [error userInfo]);
+            }
+        }];
+    }
+}
+
+// Update cache entry with parse objectId data after saved to DB
+- (void)updateCacheIdData:(PFObject*)entry
+{
+    for (EntryData *entryCacheObj in self.entryArray) {
+        if ([[entry objectForKey:@"UUID"] isEqualToString:[entryCacheObj getUUID]]) {
+            entryCacheObj.parseObjId = entry.objectId;
+        }
+    }
+    // Save back to disk
+    [NSKeyedArchiver archiveRootObject:self.entryArray toFile:self.filePath];
     
 }
+
 @end

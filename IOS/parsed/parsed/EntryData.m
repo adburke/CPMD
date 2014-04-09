@@ -23,16 +23,22 @@
         self.name = name;
         self.number = number;
         self.UUID = [[NSUUID UUID] UUIDString];
+        self.parseObjId = @"";
     }
     return self;
 }
 
-- (id)initWithUUID:(NSString*)UUID message:(NSString*)message name:(NSString*)name number:(NSNumber*)number {
+- (id)initWithUUID:(NSString*)UUID message:(NSString*)message
+                                      name:(NSString*)name
+                                    number:(NSNumber*)number
+                                parseObjId:(NSString*)parseObjectId {
+    
     if ((self = [super init])) {
         self.message = message;
         self.name = name;
         self.number = number;
         self.UUID = UUID;
+        self.parseObjId = parseObjectId;
     }
     return self;
 }
@@ -43,6 +49,7 @@
 #define kNameKey        @"name"
 #define kNumberKey      @"number"
 #define kUUIDKey        @"UUID"
+#define kParseIDKey     @"parseID"
 
 - (id)initWithCoder:(NSCoder *)decoder {
     self = [super init];
@@ -54,6 +61,7 @@
     self.number = [decoder decodeObjectForKey:kNumberKey];
     self.name = [decoder decodeObjectForKey:kNameKey];
     self.UUID = [decoder decodeObjectForKey:kUUIDKey];
+    self.parseObjId = [decoder decodeObjectForKey:kParseIDKey];
     
     return self;
 }
@@ -63,6 +71,7 @@
     [encoder encodeObject:self.number forKey:kNumberKey];
     [encoder encodeObject:self.name forKey:kNameKey];
     [encoder encodeObject:self.UUID forKey:kUUIDKey];
+    [encoder encodeObject:self.parseObjId forKey:kParseIDKey];
 }
 
 #pragma getUUID
