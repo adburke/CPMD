@@ -16,6 +16,8 @@
 
 
 - (id)initWithMessage:(NSString*)message name:(NSString*)name number:(NSNumber*)number;
+- (id)initWithUUID:(NSString*)UUID message:(NSString*)message name:(NSString*)name number:(NSNumber*)number;
+
 
 - (NSString*)getUUID;
 

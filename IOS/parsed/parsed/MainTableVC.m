@@ -54,9 +54,10 @@
     self.entryObjects = [[NSArray alloc] init];
     
     PFUser *currentUser = [PFUser currentUser];
+    
     if (currentUser) {
         // Check if local data is available and load that first else check on Parse.com
-        if (self.entryManager.entryArray != NULL) {
+        if ([self.entryManager.entryArray count] != 0) {
             self.entryObjects = [self.entryManager.entryArray copy];
             [self.tableView reloadData];
         } else if (self.appDelegate.isNetworkActive) {
@@ -67,6 +68,10 @@
                     NSLog(@"Successfully retrieved %d entryies.", objects.count);
                     // Do something with the found objects
                     self.entryObjects = [objects copy];
+                    
+                    // Create local cache from Parse DB data if cache is empty
+                    [self.entryManager createDataFromParse:[objects copy]];
+                    
                     [self.tableView reloadData];
                 } else {
                     // Log details of the failure
@@ -197,6 +202,7 @@
     if (editingStyle == UITableViewCellEditingStyleDelete) {
         // Delete the row from the data source
         [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+        [self.entryManager deleteEntryData:self.entryObjects[indexPath.row]];
     } else if (editingStyle == UITableViewCellEditingStyleInsert) {
         // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
     }   

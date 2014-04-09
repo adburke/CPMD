@@ -14,7 +14,11 @@
 @property (nonatomic, strong) NSMutableArray *entryArray;
 
 +(EntryManager*)sharedInstance;
--(NSMutableArray*)getEntryData;
-- (void)saveEntryData:(EntryData*)entry;
 
+-(NSMutableArray*)getEntryData;
+
+- (void)saveEntryData:(EntryData*)entry isNewCache:(BOOL)isNewCache;
+- (void)deleteEntryData:(EntryData*)entry;
+- (void)createDataFromParse:(NSArray*)parseObjects;
+                             
 @end

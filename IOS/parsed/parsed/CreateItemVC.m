@@ -132,7 +132,7 @@
     // Local object creation
     EntryData *entryLocal = [[EntryData alloc] initWithMessage:messageStr name:nameStr number:number];
     
-    [self.entryManager saveEntryData:entryLocal];
+    [self.entryManager saveEntryData:entryLocal isNewCache:NO];
 }
 
 //- (void)saveToParse:(PFObject*)entryParse

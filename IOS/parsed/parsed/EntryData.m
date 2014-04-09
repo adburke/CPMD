@@ -27,6 +27,16 @@
     return self;
 }
 
+- (id)initWithUUID:(NSString*)UUID message:(NSString*)message name:(NSString*)name number:(NSNumber*)number {
+    if ((self = [super init])) {
+        self.message = message;
+        self.name = name;
+        self.number = number;
+        self.UUID = UUID;
+    }
+    return self;
+}
+
 #pragma mark NSCoding
 
 #define kMessageKey     @"message"

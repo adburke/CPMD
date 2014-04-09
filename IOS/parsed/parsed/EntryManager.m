@@ -55,14 +55,17 @@
     
 }
 
-- (void)saveEntryData:(EntryData*)entry
+- (void)saveEntryData:(EntryData*)entry isNewCache:(BOOL)isNewCache
 {
     // Save local data
     [self.entryArray addObject:entry];
     [NSKeyedArchiver archiveRootObject:self.entryArray toFile:self.filePath];
     
-    // Save to Parse
-    [self saveToParse:entry];
+    if (!isNewCache) {
+        // Save to Parse
+        [self saveToParse:entry];
+    }
+    
     
 }
 
@@ -107,4 +110,16 @@
     }
 }
 
+- (void)createDataFromParse:(NSArray*)parseObjects
+{
+    for (PFObject *object in parseObjects) {
+        EntryData *entry = [[EntryData alloc] initWithUUID:[object objectForKey:@"UUID"] message:[object objectForKey:@"message"] name:[object objectForKey:@"name"] number:[object objectForKey:@"number"]];
+        [self saveEntryData:entry isNewCache:YES];
+    }
+}
+
+- (void)deleteEntryData:(EntryData*)entry
+{
+    
+}
 @end
