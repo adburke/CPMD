@@ -12,6 +12,7 @@
 #import <Parse/Parse.h>
 #import "EntryManager.h"
 #import "AppDelegate.h"
+#import "CreateItemVC.h"
 
 @interface MainTableVC ()
 
@@ -227,15 +228,31 @@
 }
 */
 
-/*
+
 #pragma mark - Navigation
 
 // In a storyboard-based application, you will often want to do a little preparation before navigation
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
 {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
+    CreateItemVC *destinationVC = segue.destinationViewController;
+    
+    if ([segue.identifier isEqualToString:@"createEntry"]) {
+        if (destinationVC) {
+            destinationVC.createDataBtnStr = @"CREATE";
+            destinationVC.pageTitleStr = @"create entry";
+            destinationVC.isCreating = YES;
+        }
+    } else if ([segue.identifier isEqualToString:@"editEntry"]) {
+        if (destinationVC) {
+            destinationVC.createDataBtnStr = @"EDIT";
+            destinationVC.pageTitleStr = @"edit entry";
+            destinationVC.isCreating = NO;
+            NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
+            destinationVC.entryToEdit = [self.entryObjects objectAtIndex:indexPath.row];
+        }
+    }
+    
 }
-*/
+
 
 @end

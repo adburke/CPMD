@@ -51,6 +51,8 @@
     // Add corner radius
     self.greyBg.layer.cornerRadius = 5;
     self.whiteBg.layer.cornerRadius = 5;
+    
+    [self updateView];
 }
 
 - (void)viewWillLayoutSubviews
@@ -68,16 +70,24 @@
     // Dispose of any resources that can be recreated.
 }
 
-/*
-#pragma mark - Navigation
-
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
+- (void)updateView
 {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
+    // Update button title
+    if (self.createDataBtnStr != NULL) {
+        [self.createDataBtn setTitle:self.createDataBtnStr forState:UIControlStateNormal];
+    }
+    // Update page title
+    if (self.pageTitleStr != NULL) {
+        self.pageTitle.text = self.pageTitleStr;
+    }
+    // Input data into fields if editing
+    if (self.entryToEdit) {
+        self.nameInput.text = self.entryToEdit.name;
+        self.messageInput.text = self.entryToEdit.message;
+        self.randomNumInput.text = [self.entryToEdit.number stringValue];
+    }
+    
 }
-*/
 
 - (IBAction)onPress:(id)sender
 {
@@ -97,7 +107,11 @@
             self.numberCheck = [self validateNumber:number];
             
             if (self.messageCheck && self.nameCheck && self.numberCheck) {
-                [self createItem:self.messageInput.text nameStr:self.nameInput.text number:number];
+                if (self.isCreating) {
+                    [self createItem:self.messageInput.text nameStr:self.nameInput.text number:number];
+                } else {
+                    [self editItem:self.messageInput.text nameStr:self.nameInput.text number:number];
+                }
             } else {
                 [self localErrorHandler:self.messageCheck nameCheck:self.nameCheck numberCheck:self.numberCheck];
                 [self stopActivity];
@@ -132,34 +146,18 @@
     // Local object creation
     EntryData *entryLocal = [[EntryData alloc] initWithMessage:messageStr name:nameStr number:number];
     
-    [self.entryManager saveEntryData:entryLocal isNewCache:NO];
+    [self.entryManager saveEntryData:entryLocal isNewCache:NO isEditingItem:NO];
+    
 }
 
-//- (void)saveToParse:(PFObject*)entryParse
-//{
-//    
-//    if (self.appDelegate.isNetworkActive) {
-//        // Save now
-//        [entryParse saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
-//            
-//            if (!error) {
-//                // Show success message
-//                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Upload Complete" message:@"Successfully saved entry" delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
-//                [alert show];
-//                
-//            } else {
-//                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Upload Failure" message:[error localizedDescription] delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
-//                [alert show];
-//                
-//            }
-//            
-//        }];
-//    } else {
-//        // Save later when network is re-established
-//        [entryParse saveEventually];
-//        
-//    }
-//}
+- (void)editItem:(NSString*)messageStr nameStr:(NSString*)nameStr number:(NSNumber*)number
+{
+    self.entryToEdit.message = messageStr;
+    self.entryToEdit.name = nameStr;
+    self.entryToEdit.number = number;
+    [self.entryManager saveEntryData:self.entryToEdit isNewCache:NO isEditingItem:YES];
+
+}
 
 - (BOOL)validateMessage:(NSString*)messageStr
 {

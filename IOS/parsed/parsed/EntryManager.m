@@ -56,31 +56,57 @@
     
 }
 
-- (void)saveEntryData:(EntryData*)entry isNewCache:(BOOL)isNewCache
+- (void)saveEntryData:(EntryData*)entry isNewCache:(BOOL)isNewCache isEditingItem:(BOOL)isEditingItem
 {
-    // Save local data
-    [self.entryArray addObject:entry];
-    BOOL saveStatus = [NSKeyedArchiver archiveRootObject:self.entryArray toFile:self.filePath];
-    
-    if (!isNewCache) {
-        // Save to Parse
-        [self saveToParse:entry];
-    }
-    
     // Used to get the top most visible VC in this case CreateItemVC to use as delegate of our alertView
     UIViewController *topController = [UIApplication sharedApplication].keyWindow.rootViewController;
     while (topController.presentedViewController) {
         topController = topController.presentedViewController;
     }
     
-    if (saveStatus) {
-        // Show success message
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Upload Complete" message:@"Successfully saved entry" delegate:topController cancelButtonTitle:@"OK" otherButtonTitles:nil];
-        [alert show];
+    if (!isEditingItem) {
+        // Save local data
+        [self.entryArray addObject:entry];
+        BOOL saveStatus = [NSKeyedArchiver archiveRootObject:self.entryArray toFile:self.filePath];
+        
+        if (!isNewCache) {
+            // Save to Parse
+            [self saveToParse:entry];
+        }
+        
+        if (saveStatus) {
+            // Show success message
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Save Complete" message:@"Successfully saved entry" delegate:topController cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            [alert show];
+        } else {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Save Failed" message:@"Failed to save entry" delegate:topController cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
+            [alert show];
+        }
     } else {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Save Failed" message:@"Failed to save entry" delegate:topController cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
-        [alert show];
+        for (EntryData *entryFromArray in self.entryArray) {
+            if ([[entryFromArray getUUID] isEqualToString:[entry getUUID]]) {
+                NSLog(@"Match found");
+                entryFromArray.message = entry.message;
+                entryFromArray.name = entry.name;
+                entryFromArray.number = entry.number;
+                break;
+            }
+        }
+        BOOL saveStatus = [NSKeyedArchiver archiveRootObject:self.entryArray toFile:self.filePath];
+        
+        [self updateToParse:entry];
+        
+        if (saveStatus) {
+            // Show success message
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Edit Complete" message:@"Successfully edited entry" delegate:topController cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            [alert show];
+        } else {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Edit Failed" message:@"Failed to edit entry" delegate:topController cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
+            [alert show];
+        }
+        
     }
+    
     
     
 }
@@ -128,6 +154,7 @@
         // Save later when network is re-established
         [entryParse saveEventually:^(BOOL succeeded, NSError *error) {
             if (!error) {
+                // Grab entry back from parse to update cache with for holding parse objectId
                 PFQuery *query = [PFQuery queryWithClassName:@"Entry"];
                 [query whereKey:@"UUID" equalTo:[entryParse objectForKey:@"UUID"]];
                 [query getFirstObjectInBackgroundWithBlock:^(PFObject *object, NSError *error) {
@@ -150,11 +177,48 @@
     }
 }
 
+- (void)updateToParse:(EntryData*)entry
+{
+    if (self.appDelegate.isNetworkActive) {
+        PFQuery *query = [PFQuery queryWithClassName:@"Entry"];
+        
+        // Retrieve the object by id
+        [query getObjectInBackgroundWithId:entry.parseObjId block:^(PFObject *entryFromParse, NSError *error) {
+            
+            // Now let's update it with some new data. In this case, only cheatMode and score
+            // will get sent to the cloud. playerName hasn't changed.
+            entryFromParse[@"message"] = entry.message;
+            entryFromParse[@"name"] = entry.name;
+            entryFromParse[@"number"] = entry.number;
+            [entryFromParse saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+                
+                if (!error) {
+                    NSLog(@"Successfully saved entry to Parse DB.");
+                } else {
+                    
+                    NSLog(@"Error: %@", [error localizedDescription]);
+                    
+                }
+                
+            }];;
+            
+        }];
+    } else {
+        // Parse object creation
+        PFObject *entryParse = [PFObject objectWithClassName:@"Entry"];
+        entryParse.objectId = entry.parseObjId;
+        entryParse[@"message"] = entry.message;
+        entryParse[@"name"] = entry.name;
+        entryParse[@"number"] = entry.number;
+        [entryParse saveEventually];
+    }
+}
+
 - (void)createDataFromParse:(NSArray*)parseObjects
 {
     for (PFObject *object in parseObjects) {
         EntryData *entry = [[EntryData alloc] initWithUUID:[object objectForKey:@"UUID"] message:[object objectForKey:@"message"] name:[object objectForKey:@"name"] number:[object objectForKey:@"number"] parseObjId:object.objectId];
-        [self saveEntryData:entry isNewCache:YES];
+        [self saveEntryData:entry isNewCache:YES isEditingItem:NO];
     }
 }
 

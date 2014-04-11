@@ -206,6 +206,7 @@
                                     <outlet property="message" destination="o9F-n9-WBd" id="pPG-ZR-GKG"/>
                                     <outlet property="name" destination="gwY-Dq-Ioy" id="aGz-EF-vLc"/>
                                     <outlet property="number" destination="zdS-Su-ZUg" id="mHw-Kn-X4e"/>
+                                    <segue destination="2eT-bc-xrH" kind="modal" identifier="editEntry" modalPresentationStyle="formSheet" modalTransitionStyle="flipHorizontal" id="EsC-KU-FjS"/>
                                 </connections>
                             </tableViewCell>
                         </prototypes>
@@ -222,7 +223,7 @@
                         </barButtonItem>
                         <barButtonItem key="rightBarButtonItem" systemItem="add" id="MK1-mj-zPl">
                             <connections>
-                                <segue destination="2eT-bc-xrH" kind="modal" modalPresentationStyle="formSheet" modalTransitionStyle="flipHorizontal" id="0KM-Nx-4XZ"/>
+                                <segue destination="2eT-bc-xrH" kind="modal" identifier="createEntry" modalPresentationStyle="formSheet" modalTransitionStyle="flipHorizontal" id="0KM-Nx-4XZ"/>
                             </connections>
                         </barButtonItem>
                     </navigationItem>
@@ -398,8 +399,8 @@
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="create entry" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="VFx-S9-Jpr">
-                                <rect key="frame" x="170" y="-30" width="274" height="122"/>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="entry" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="VFx-S9-Jpr">
+                                <rect key="frame" x="138" y="-17" width="324" height="122"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" name="Futura-Medium" family="Futura" pointSize="50"/>
                                 <color key="textColor" red="0.29803922770000002" green="0.29803922770000002" blue="0.29803922770000002" alpha="1" colorSpace="calibratedRGB"/>
@@ -448,7 +449,7 @@
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" red="1" green="0.80000001190000003" blue="0.40000000600000002" alpha="1" colorSpace="calibratedRGB"/>
                                 <fontDescription key="fontDescription" name="HelveticaNeue-Medium" family="Helvetica Neue" pointSize="17"/>
-                                <state key="normal" title="CREATE">
+                                <state key="normal">
                                     <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
@@ -467,6 +468,7 @@
                         <outlet property="greyBg" destination="z1I-aO-o6k" id="aSD-ba-lQa"/>
                         <outlet property="messageInput" destination="sif-7w-rK6" id="x4j-Sz-6Aa"/>
                         <outlet property="nameInput" destination="PVf-WD-eQG" id="DyO-se-ThH"/>
+                        <outlet property="pageTitle" destination="VFx-S9-Jpr" id="pEz-UJ-vYG"/>
                         <outlet property="randomNumInput" destination="c9y-IF-iXs" id="IPL-7z-Wch"/>
                         <outlet property="whiteBg" destination="z4T-Se-OKC" id="aPF-Jm-Zic"/>
                     </connections>
@@ -481,4 +483,7 @@
         <simulatedOrientationMetrics key="orientation"/>
         <simulatedScreenMetrics key="destination"/>
     </simulatedMetricsContainer>
+    <inferredMetricsTieBreakers>
+        <segue reference="0KM-Nx-4XZ"/>
+    </inferredMetricsTieBreakers>
 </document>
