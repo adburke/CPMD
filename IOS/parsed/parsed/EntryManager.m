@@ -72,16 +72,18 @@
         if (!isNewCache) {
             // Save to Parse
             [self saveToParse:entry];
+            
+            if (saveStatus) {
+                // Show success message
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Save Complete" message:@"Successfully saved entry" delegate:topController cancelButtonTitle:@"OK" otherButtonTitles:nil];
+                [alert show];
+            } else {
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Save Failed" message:@"Failed to save entry" delegate:topController cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
+                [alert show];
+            }
         }
         
-        if (saveStatus) {
-            // Show success message
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Save Complete" message:@"Successfully saved entry" delegate:topController cancelButtonTitle:@"OK" otherButtonTitles:nil];
-            [alert show];
-        } else {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Save Failed" message:@"Failed to save entry" delegate:topController cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
-            [alert show];
-        }
+        
     } else {
         for (EntryData *entryFromArray in self.entryArray) {
             if ([[entryFromArray getUUID] isEqualToString:[entry getUUID]]) {

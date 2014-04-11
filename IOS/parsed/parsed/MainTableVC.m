@@ -57,30 +57,7 @@
     PFUser *currentUser = [PFUser currentUser];
     
     if (currentUser) {
-        // Check if local data is available and load that first else check on Parse.com
-        if ([self.entryManager.entryArray count] != 0) {
-            self.entryObjects = [self.entryManager.entryArray copy];
-            [self.tableView reloadData];
-        } else if (self.appDelegate.isNetworkActive) {
-            PFQuery *query = [PFQuery queryWithClassName:@"Entry"];
-            [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
-                if (!error) {
-                    // The find succeeded.
-                    NSLog(@"Successfully retrieved %d entryies.", objects.count);
-                    // Do something with the found objects
-                    self.entryObjects = [objects copy];
-                    
-                    // Create local cache from Parse DB data if cache is empty
-                    [self.entryManager createDataFromParse:[objects copy]];
-                    
-                    [self.tableView reloadData];
-                } else {
-                    // Log details of the failure
-                    NSLog(@"Error: %@ %@", error, [error userInfo]);
-                }
-            }];
-            
-        }
+        [self reloadData];
     }
     
     
@@ -93,6 +70,8 @@
         self.entryObjects = nil;
         LoginVC *loginVc = [self.storyboard instantiateViewControllerWithIdentifier:@"loginVc"];
         [self presentViewController:loginVc animated:YES completion:nil];
+    } else {
+        [self reloadData];
     }
 }
 
@@ -104,7 +83,8 @@
 
 - (void)reloadData
 {
-    if (self.entryManager.entryArray != NULL) {
+    // Check if local data is available and load that first else check on Parse.com
+    if ([self.entryManager.entryArray count] != 0) {
         self.entryObjects = [self.entryManager.entryArray copy];
         [self.tableView reloadData];
     } else if (self.appDelegate.isNetworkActive) {
@@ -115,6 +95,10 @@
                 NSLog(@"Successfully retrieved %d entryies.", objects.count);
                 // Do something with the found objects
                 self.entryObjects = [objects copy];
+                
+                // Create local cache from Parse DB data if cache is empty
+                [self.entryManager createDataFromParse:[objects copy]];
+                
                 [self.tableView reloadData];
             } else {
                 // Log details of the failure
