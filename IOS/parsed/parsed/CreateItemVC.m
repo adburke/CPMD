@@ -179,7 +179,7 @@
 
 - (BOOL)validateNumber:(NSNumber*)number
 {
-    if ([number isEqualToNumber:[NSDecimalNumber notANumber]]) {
+    if ([number isEqualToNumber:[NSDecimalNumber notANumber]] || number == nil) {
         return NO;
     } else {
         return YES;
