@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Project:		parsed
+  ~
+  ~ Package:		app
+  ~
+  ~ Author:		aaronburke
+  ~
+  ~ Date:		 	4 11, 2014
+-->
+<resources>
+
+    <string name="app_name">parsed</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_login_fragment">LoginFragment</string>
+    <string name="title_activity_main">MainActivity</string>
+
+</resources>

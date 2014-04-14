@@ -1,0 +1,9 @@
+<component name="CopyrightManager">
+  <copyright>
+    <option name="notice" value="Project:&#9;&#9;&amp;#36;project.name&#10;&#10;Package:&#9;&#9;&amp;#36;module.name&#10;&#10;Author:&#9;&#9;&amp;#36;username&#10;&#10;Date:&#9;&#9; &#9;&amp;#36;today.month &amp;#36;today.day, &amp;#36;today.year" />
+    <option name="keyword" value="Copyright" />
+    <option name="allowReplaceKeyword" value="" />
+    <option name="myName" value="Android Class Work" />
+    <option name="myLocal" value="true" />
+  </copyright>
+</component>

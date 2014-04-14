@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Project:		Xecute
+  ~
+  ~ Package:		app
+  ~
+  ~ Author:		aaronburke
+  ~
+  ~ Date:		 	2 20, 2014
+  -->
+
+<resources>
+
+    <color name="dark_blue">#285dab</color>
+    <color name="dark_blue_down">#19407a</color>
+    <color name="light_blue">#2cb6d2</color>
+    <color name="light_blue_down">#238da3</color>838687
+    <color name="grey">#838687</color>
+    <color name="grey_down">#616263</color>
+</resources>
