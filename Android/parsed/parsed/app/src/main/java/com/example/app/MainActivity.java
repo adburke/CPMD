@@ -10,29 +10,42 @@
 
 package com.example.app;
 
+import android.app.ListActivity;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-public class MainActivity extends ListFragment {
+public class MainActivity extends ListActivity {
+    Context mContext;
+
+    EntryListAdapter entryListAdapter;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        super.onCreateView(inflater, container, savedInstanceState);
+    protected void onCreate(Bundle savedInstanceState){
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
+        mContext = this;
 
+        entryListAdapter = new EntryListAdapter(mContext);
+        setListAdapter(entryListAdapter);
+        entryListAdapter.loadObjects();
 
     }
 
 
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        
 
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 
