@@ -17,6 +17,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by aaronburke on 4/15/14.
@@ -25,6 +27,8 @@ public class EntryManager {
 
     // Singleton Creation
     private static EntryManager m_instance;
+    public static List<Entry> cachedEntries;
+
     private EntryManager(){
         // Constructor empty for singleton
     }

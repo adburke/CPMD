@@ -33,7 +33,8 @@ public class EntryListAdapter extends ParseQueryAdapter<ParseObject> {
 
                 ParseQuery query = new ParseQuery("Entry");
                 //query.whereEqualTo("createdBy", ParseUser.getCurrentUser());
-                Log.i("QUERY", "Query = " + query);
+                //Log.i("QUERY", "Query = " + query);
+
                 return query;
 
             }
@@ -49,24 +50,24 @@ public class EntryListAdapter extends ParseQueryAdapter<ParseObject> {
 
     @Override
     public View getItemView(ParseObject object, View v, ViewGroup parent) {
-        Log.i("getItemView", "fired");
+        //Log.i("getItemView", "fired");
         if (v == null) {
             v = View.inflate(mContext, R.layout.list_item_layout, null);
-            Log.i("PARSEADAPTER", "Layout Inflated");
+            //Log.i("PARSEADAPTER", "Layout Inflated");
         }
         super.getItemView(object, v, parent);
 
         TextView userName = (TextView) v.findViewById(R.id.name);
         userName.setText(object.getString("name"));
-        Log.i("QUERY", "Name = " + object.getString("name"));
+        //Log.i("QUERY", "Name = " + object.getString("name"));
 
         TextView message = (TextView) v.findViewById(R.id.message);
         message.setText(object.getString("message"));
-        Log.i("QUERY", "Message = " + object.getString("message"));
+        //Log.i("QUERY", "Message = " + object.getString("message"));
 
         TextView projectStatus = (TextView) v.findViewById(R.id.random_number);
         projectStatus.setText(object.getNumber("number").toString());
-        Log.i("QUERY", "RandomNum = " + object.getString("status"));
+        //Log.i("QUERY", "RandomNum = " + object.getString("status"));
 
         return v;
     }

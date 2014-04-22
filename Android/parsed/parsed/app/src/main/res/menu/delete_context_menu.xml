@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  ~ Project:		parsed
+  ~
+  ~ Package:		app
+  ~
+  ~ Author:		aaronburke
+  ~
+  ~ Date:		 	4 21, 2014
+  -->
+
+<!--
+  ~ Project:		Xecute
+  ~
+  ~ Package:		app
+  ~
+  ~ Author:		aaronburke
+  ~
+  ~ Date:		 	2 17, 2014
+  -->
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/item_edit"
+        android:icon="@android:drawable/ic_menu_edit"
+        android:showAsAction="ifRoom|withText"
+        android:title="@string/action_edit"
+        android:titleCondensed="Edit">
+    </item>
+
+    <item
+        android:id="@+id/item_delete"
+        android:icon="@android:drawable/ic_menu_delete"
+        android:showAsAction="ifRoom|withText"
+        android:title="@string/action_delete"
+        android:titleCondensed="Delete">
+    </item>
+
+</menu>
