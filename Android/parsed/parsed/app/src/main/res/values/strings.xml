@@ -17,6 +17,12 @@
     <string name="action_logout">Log Out</string>
     <string name="action_add">Add</string>
     <string name="action_delete">Delete</string>
+    <string name="action_new">New Entry</string>
     <string name="action_edit">Edit</string>
+    <string name="ok">OK</string>
+    <string name="cancel">CANCEL</string>
+    <string name="entry_name_hint">Your Name</string>
+    <string name="entry_message_hint">Message</string>
+    <string name="entry_number_hint">Input a Random Number</string>
 
 </resources>

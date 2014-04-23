@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  ~ Project:		parsed
+  ~
+  ~ Package:		app
+  ~
+  ~ Author:		aaronburke
+  ~
+  ~ Date:		 	4 23, 2014
+  -->
+
+<!--
+  ~ Project:		Xecute
+  ~
+  ~ Package:		app
+  ~
+  ~ Author:		aaronburke
+  ~
+  ~ Date:		 	2 13, 2014
+  -->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <LinearLayout
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:layout_width="0px"
+        android:layout_height="0px" />
+
+    <EditText
+        android:id="@+id/entry_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:hint="@string/entry_name_hint"
+        android:textColorHint="#C0C0C0"
+        android:maxLines="1"/>
+    <EditText
+        android:id="@+id/entry_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:hint="@string/entry_message_hint"
+        android:textColorHint="#C0C0C0"
+        android:maxLines="1"/>
+    <EditText
+        android:id="@+id/entry_number"
+        android:inputType="number"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:hint="@string/entry_number_hint"
+        android:textColorHint="#C0C0C0"
+        android:maxLines="1"/>
+
+    <TextView
+        android:id="@+id/entry_error"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:textColor="#ff0000"
+        android:visibility="invisible"
+        android:layout_marginBottom="10dp"/>
+
+</LinearLayout>
