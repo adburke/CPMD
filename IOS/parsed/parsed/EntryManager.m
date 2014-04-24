@@ -298,8 +298,8 @@
     [PFObject saveAllInBackground:parseObjects block:^(BOOL succeeded, NSError *error) {
         if (succeeded) {
             // Show success message
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Save Complete" message:@"Successfully saved entry" delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
-            [alert show];
+//            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Save to Cloud" message:@"Successfully saved offline created Entry(s)" delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
+//            [alert show];
             [self.offlineSavedArray removeAllObjects];
             [NSKeyedArchiver archiveRootObject:self.offlineSavedArray toFile:self.filePathOfflineSave];
         }
