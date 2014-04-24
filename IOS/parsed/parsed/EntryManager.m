@@ -176,30 +176,7 @@
         }];
     } else {
         [self.offlineSavedArray addObject:entry];
-        BOOL saveStatus = [NSKeyedArchiver archiveRootObject:self.offlineSavedArray toFile:self.filePathOfflineSave];
-        
-        // Save later when network is re-established
-//        [entryParse saveEventually:^(BOOL succeeded, NSError *error) {
-//            if (!error) {
-//                // Grab entry back from parse to update cache with for holding parse objectId
-//                PFQuery *query = [PFQuery queryWithClassName:@"Entry"];
-//                [query whereKey:@"UUID" equalTo:[entryParse objectForKey:@"UUID"]];
-//                [query getFirstObjectInBackgroundWithBlock:^(PFObject *object, NSError *error) {
-//                    if (!error) {
-//                        // The find succeeded.
-//                        NSLog(@"Successfully saved entry to Parse DB.");
-//                        
-//                        [self updateCacheIdData:object];
-//                        
-//                    } else {
-//                        // Log details of the failure
-//                        NSLog(@"Error: %@ %@", error, [error userInfo]);
-//                    }
-//                }];
-//            } else {
-//                NSLog(@"Error: %@ %@", error, [error userInfo]);
-//            }
-//        }];
+        [NSKeyedArchiver archiveRootObject:self.offlineSavedArray toFile:self.filePathOfflineSave];
         
     }
 }
@@ -236,7 +213,7 @@
         }
         
         [self.offlineSavedArray addObject:entry];
-        BOOL saveStatus = [NSKeyedArchiver archiveRootObject:self.offlineSavedArray toFile:self.filePathOfflineSave];
+        [NSKeyedArchiver archiveRootObject:self.offlineSavedArray toFile:self.filePathOfflineSave];
         
     }
 }
@@ -297,6 +274,9 @@
     
 }
 
+// Implemented this method to remove parse saveEventually
+// Updates parse.com with the correct offline data immediately when network returns
+// Parse.com saveEventually proved unreliable
 - (void)updateParseWithSavedData {
     NSMutableArray *parseObjects;
     if (parseObjects == NULL) {
