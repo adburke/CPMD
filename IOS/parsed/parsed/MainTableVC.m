@@ -48,6 +48,11 @@
                                                  name:@"refreshTable"
                                                object:nil];
     
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(sendParseData)
+                                                 name:@"networkActive"
+                                               object:nil];
+    
     
     self.appDelegate = (AppDelegate*)[[UIApplication sharedApplication] delegate];
     self.entryManager = [EntryManager sharedInstance];
@@ -108,6 +113,16 @@
         
     }
 
+}
+
+- (void)sendParseData {
+    NSLog(@"sendParseData fired");
+    if ([self.entryManager.offlineSavedArray count] != 0) {
+        [self.entryManager updateParseWithSavedData];
+        NSLog(@"sendParseData: fired EntryManager updateParseWithSavedData");
+    } else{
+        NSLog(@"sendParseData: no data to send");
+    }
 }
 
 - (IBAction)onPress:(id)sender

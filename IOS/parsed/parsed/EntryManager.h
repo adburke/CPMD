@@ -12,13 +12,16 @@
 @interface EntryManager : NSObject
 
 @property (nonatomic, strong) NSMutableArray *entryArray;
+@property (nonatomic, strong) NSMutableArray *offlineSavedArray;
 
 +(EntryManager*)sharedInstance;
 
--(NSMutableArray*)getEntryData;
+- (NSMutableArray*)getEntryData;
+- (NSMutableArray*)getEntryOfflineSaveData;
 
 - (void)saveEntryData:(EntryData*)entry isNewCache:(BOOL)isNewCache isEditingItem:(BOOL)isEditingItem;
 - (void)deleteEntryData:(EntryData*)entry;
 - (void)createDataFromParse:(NSArray*)parseObjects;
+- (void)updateParseWithSavedData;
                              
 @end

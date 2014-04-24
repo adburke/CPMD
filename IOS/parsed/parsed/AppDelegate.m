@@ -9,14 +9,18 @@
 #import "AppDelegate.h"
 #import <Parse/Parse.h>
 #import "Reachability.h"
+#import "EntryManager.h"
 
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    
     // Parse app ID info
     [Parse setApplicationId:@"YEMslUIrrePQWLOo6oEKFGNkG6YW6s5sut4ZYmhD"
                   clientKey:@"HvGmCicgvVoXDZmQzAucgEDJTADChgpClluVXvjo"];
+    
+    [EntryManager sharedInstance];
     
     [PFAnalytics trackAppOpenedWithLaunchOptions:launchOptions];
     
@@ -32,6 +36,7 @@
     {
         NSLog(@"REACHABLE!");
         self.isNetworkActive = YES;
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"networkActive" object:self];
     };
     
     reach.unreachableBlock = ^(Reachability*reach)

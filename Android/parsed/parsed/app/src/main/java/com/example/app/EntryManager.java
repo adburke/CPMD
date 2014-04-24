@@ -12,6 +12,12 @@ package com.example.app;
 
 import android.content.Context;
 
+import com.parse.FindCallback;
+import com.parse.GetCallback;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
+
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -55,6 +61,21 @@ public class EntryManager {
         return object;
     }
 
+    public static void updateToParse(Entry entry, Context mContext) {
+        Boolean status = ConnectionStatus.getNetworkStatus(mContext);
 
+        if (status) {
+            ParseQuery<ParseObject> query = ParseQuery.getQuery("Entry");
+            query.getInBackground(entry.getParseObjId(), new GetCallback<ParseObject>() {
+                public void done(ParseObject object, ParseException e) {
+                    if (e == null) {
+                        // object will be your game score
+                    } else {
+                        // something went wrong
+                    }
+                }
+            });
+        }
+    }
 
 }

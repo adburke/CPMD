@@ -255,7 +255,7 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
                 entryName.clearFocus();
                 entryMessage.clearFocus();
                 entryNumber.clearFocus();
-               
+
 
                 if (entryName.getText().toString().isEmpty() || entryMessage.getText().toString().isEmpty() || entryNumber.getText().toString().isEmpty() ) {
                     Log.i("Save Entry", "Inputs can't be empty!");
@@ -290,20 +290,25 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
         final TextView errorMessage = (TextView) view.findViewById(R.id.entry_error);
 
         final EditText entryName = (EditText) view.findViewById(R.id.entry_name);
+        entryName.setText(entryToEdit.getName());
         entryName.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 errorMessage.setVisibility(View.INVISIBLE);
             }
         });
+
         final EditText entryMessage = (EditText) view.findViewById(R.id.entry_message);
+        entryMessage.setText(entryToEdit.getMessage());
         entryMessage.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 errorMessage.setVisibility(View.INVISIBLE);
             }
         });
+
         final EditText entryNumber = (EditText) view.findViewById(R.id.entry_number);
+        entryNumber.setText(entryToEdit.getNumber().toString());
         entryNumber.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
@@ -331,6 +336,9 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
             @Override
             public void onClick(View v){
 
+                //Boolean status = ConnectionStatus.getNetworkStatus(mContext);
+                Boolean valid = false;
+
                 if (entryName.getText().toString().isEmpty() || entryMessage.getText().toString().isEmpty() || entryNumber.getText().toString().isEmpty() ) {
                     Log.i("Save Entry", "Inputs can't be empty!");
                     errorMessage.setText("Inputs can't be empty!");
@@ -339,12 +347,29 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
                 } else if (!entryNumber.getText().toString().isEmpty()) {
                     try {
                         int num = Integer.parseInt(entryNumber.getText().toString());
+                        valid = true;
                     } catch (NumberFormatException e) {
                         errorMessage.setText("Input a valid number!");
                         errorMessage.setVisibility(View.VISIBLE);
                     }
 
 
+                }
+
+                if (valid) {
+                    entryToEdit.setName(entryName.getText().toString());
+                    entryToEdit.setMessage(entryMessage.getText().toString());
+                    entryToEdit.setNumber((Number) Integer.parseInt(entryNumber.getText().toString()));
+
+                    try {
+                        EntryManager.writeObject(mContext,data_file,cachedEntries);
+
+                        cachedEntryListAdapter.notifyDataSetChanged();
+
+                        dialog.dismiss();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
 

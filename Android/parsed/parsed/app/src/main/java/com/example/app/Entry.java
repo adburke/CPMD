@@ -49,6 +49,23 @@ public class Entry implements Serializable {
     public Number getNumber() {
         return number;
     }
+    public String getParseObjId() {return parseObjId};
     public String getUUID() { return mUUID;}
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public void setNumber(Number number) {
+        this.number = number;
+    }
+
+    public void setParseObjId(String objId) {
+        this.parseObjId = objId;
+    }
 
 }

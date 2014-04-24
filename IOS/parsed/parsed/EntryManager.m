@@ -14,13 +14,13 @@
 
 @property (nonatomic, strong) NSArray *paths;
 @property (nonatomic, strong) NSString *documentsDirectory;
-@property (nonatomic, strong) NSString *filePath;
+@property (nonatomic, strong) NSString *filePathCache;
+@property (nonatomic, strong) NSString *filePathOfflineSave;
 @property (nonatomic, strong) AppDelegate *appDelegate;
 
 @end
 
 @implementation EntryManager
-
 
 +(EntryManager*)sharedInstance;
 {
@@ -36,9 +36,13 @@
 - (id)init {
     if (self = [super init]) {
         self.entryArray = [[NSMutableArray alloc] init];
+        self.offlineSavedArray = [[NSMutableArray alloc] init];
         self.appDelegate = (AppDelegate*)[[UIApplication sharedApplication] delegate];
         if ([self getEntryData] != NULL) {
             self.entryArray = [[self getEntryData] mutableCopy];
+        }
+        if ([self getEntryOfflineSaveData] != NULL) {
+            self.offlineSavedArray = [[self getEntryOfflineSaveData] mutableCopy];
         }
     }
     return self;
@@ -48,10 +52,22 @@
 {
     self.paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     self.documentsDirectory = [self.paths objectAtIndex:0];
-    self.filePath = [self.documentsDirectory stringByAppendingPathComponent: @"entryData.plist"];
+    self.filePathCache = [self.documentsDirectory stringByAppendingPathComponent: @"entryData.plist"];
     
     
-    return [NSKeyedUnarchiver unarchiveObjectWithFile:self.filePath];
+    return [NSKeyedUnarchiver unarchiveObjectWithFile:self.filePathCache];
+    
+    
+}
+
+- (NSMutableArray*)getEntryOfflineSaveData
+{
+    self.paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    self.documentsDirectory = [self.paths objectAtIndex:0];
+    self.filePathOfflineSave = [self.documentsDirectory stringByAppendingPathComponent: @"offlineSavedData.plist"];
+    
+    
+    return [NSKeyedUnarchiver unarchiveObjectWithFile:self.filePathOfflineSave];
     
     
 }
@@ -65,9 +81,10 @@
     }
     
     if (!isEditingItem) {
+        // New entry
         // Save local data
         [self.entryArray addObject:entry];
-        BOOL saveStatus = [NSKeyedArchiver archiveRootObject:self.entryArray toFile:self.filePath];
+        BOOL saveStatus = [NSKeyedArchiver archiveRootObject:self.entryArray toFile:self.filePathCache];
         
         if (!isNewCache) {
             // Save to Parse
@@ -85,18 +102,23 @@
         
         
     } else {
-        for (EntryData *entryFromArray in self.entryArray) {
-            if ([[entryFromArray getUUID] isEqualToString:[entry getUUID]]) {
-                NSLog(@"Match found");
-                entryFromArray.message = entry.message;
-                entryFromArray.name = entry.name;
-                entryFromArray.number = entry.number;
+        // Editing an existing entry
+        int entryIndex = 0;
+        for (int i = 0, j = self.entryArray.count; i<j ; i++) {
+            if ([[self.entryArray[i] getUUID] isEqualToString:[entry getUUID]]) {
+                entryIndex = i;
+                EntryData *cachedEntry = self.entryArray[i];
+                cachedEntry.name  = entry.name;
+                cachedEntry.message = entry.message;
+                cachedEntry.number = entry.number;
                 break;
             }
+            
         }
-        BOOL saveStatus = [NSKeyedArchiver archiveRootObject:self.entryArray toFile:self.filePath];
+
+        BOOL saveStatus = [NSKeyedArchiver archiveRootObject:self.entryArray toFile:self.filePathCache];
         
-        [self updateToParse:entry];
+        [self updateToParse:[self.entryArray objectAtIndex:entryIndex] indexNum:entryIndex];
         
         if (saveStatus) {
             // Show success message
@@ -153,42 +175,42 @@
             
         }];
     } else {
+        [self.offlineSavedArray addObject:entry];
+        BOOL saveStatus = [NSKeyedArchiver archiveRootObject:self.offlineSavedArray toFile:self.filePathOfflineSave];
+        
         // Save later when network is re-established
-        [entryParse saveEventually:^(BOOL succeeded, NSError *error) {
-            if (!error) {
-                // Grab entry back from parse to update cache with for holding parse objectId
-                PFQuery *query = [PFQuery queryWithClassName:@"Entry"];
-                [query whereKey:@"UUID" equalTo:[entryParse objectForKey:@"UUID"]];
-                [query getFirstObjectInBackgroundWithBlock:^(PFObject *object, NSError *error) {
-                    if (!error) {
-                        // The find succeeded.
-                        NSLog(@"Successfully saved entry to Parse DB.");
-                        
-                        [self updateCacheIdData:object];
-                        
-                    } else {
-                        // Log details of the failure
-                        NSLog(@"Error: %@ %@", error, [error userInfo]);
-                    }
-                }];
-            } else {
-                NSLog(@"Error: %@ %@", error, [error userInfo]);
-            }
-        }];
+//        [entryParse saveEventually:^(BOOL succeeded, NSError *error) {
+//            if (!error) {
+//                // Grab entry back from parse to update cache with for holding parse objectId
+//                PFQuery *query = [PFQuery queryWithClassName:@"Entry"];
+//                [query whereKey:@"UUID" equalTo:[entryParse objectForKey:@"UUID"]];
+//                [query getFirstObjectInBackgroundWithBlock:^(PFObject *object, NSError *error) {
+//                    if (!error) {
+//                        // The find succeeded.
+//                        NSLog(@"Successfully saved entry to Parse DB.");
+//                        
+//                        [self updateCacheIdData:object];
+//                        
+//                    } else {
+//                        // Log details of the failure
+//                        NSLog(@"Error: %@ %@", error, [error userInfo]);
+//                    }
+//                }];
+//            } else {
+//                NSLog(@"Error: %@ %@", error, [error userInfo]);
+//            }
+//        }];
         
     }
 }
 
-- (void)updateToParse:(EntryData*)entry
+- (void)updateToParse:(EntryData*)entry indexNum:(int)indexNum
 {
     if (self.appDelegate.isNetworkActive) {
         PFQuery *query = [PFQuery queryWithClassName:@"Entry"];
-        
-        // Retrieve the object by id
-        [query getObjectInBackgroundWithId:entry.parseObjId block:^(PFObject *entryFromParse, NSError *error) {
+        [query whereKey:@"UUID" equalTo:[entry getUUID]];
+        [query getFirstObjectInBackgroundWithBlock:^(PFObject *entryFromParse, NSError *error) {
             
-            // Now let's update it with some new data. In this case, only cheatMode and score
-            // will get sent to the cloud. playerName hasn't changed.
             entryFromParse[@"message"] = entry.message;
             entryFromParse[@"name"] = entry.name;
             entryFromParse[@"number"] = entry.number;
@@ -206,13 +228,16 @@
             
         }];
     } else {
-        // Parse object creation
-        PFObject *entryParse = [PFObject objectWithClassName:@"Entry"];
-        entryParse.objectId = entry.parseObjId;
-        entryParse[@"message"] = entry.message;
-        entryParse[@"name"] = entry.name;
-        entryParse[@"number"] = entry.number;
-        [entryParse saveEventually];
+       
+        for (EntryData *entryOfflineSaved in self.offlineSavedArray) {
+            if ([[entryOfflineSaved getUUID] isEqualToString:[entry getUUID]]) {
+                [self.offlineSavedArray removeObject:entryOfflineSaved];
+            }
+        }
+        
+        [self.offlineSavedArray addObject:entry];
+        BOOL saveStatus = [NSKeyedArchiver archiveRootObject:self.offlineSavedArray toFile:self.filePathOfflineSave];
+        
     }
 }
 
@@ -233,7 +258,7 @@
             break;
         }
     }
-    [NSKeyedArchiver archiveRootObject:self.entryArray toFile:self.filePath];
+    [NSKeyedArchiver archiveRootObject:self.entryArray toFile:self.filePathCache];
     
     // Delete item from Parse
     if (self.appDelegate.isNetworkActive) {
@@ -268,8 +293,37 @@
         }
     }
     // Save back to disk
-    [NSKeyedArchiver archiveRootObject:self.entryArray toFile:self.filePath];
+    [NSKeyedArchiver archiveRootObject:self.entryArray toFile:self.filePathCache];
     
+}
+
+- (void)updateParseWithSavedData {
+    NSMutableArray *parseObjects;
+    if (parseObjects == NULL) {
+        parseObjects = [[NSMutableArray alloc] init];
+    } else {
+        [parseObjects removeAllObjects];
+    }
+    for (EntryData *entry in self.offlineSavedArray) {
+        PFObject *entryParse = [PFObject objectWithClassName:@"Entry"];
+        if ([entry.parseObjId length] != 0) {
+                entryParse.objectId = entry.parseObjId;
+        }
+        entryParse[@"message"] = entry.message;
+        entryParse[@"name"] = entry.name;
+        entryParse[@"number"] = entry.number;
+        entryParse[@"UUID"] = [entry getUUID];
+        [parseObjects addObject:entryParse];
+    }
+    [PFObject saveAllInBackground:parseObjects block:^(BOOL succeeded, NSError *error) {
+        if (succeeded) {
+            // Show success message
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Save Complete" message:@"Successfully saved entry" delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            [alert show];
+            [self.offlineSavedArray removeAllObjects];
+            [NSKeyedArchiver archiveRootObject:self.offlineSavedArray toFile:self.filePathOfflineSave];
+        }
+    }];
 }
 
 @end
