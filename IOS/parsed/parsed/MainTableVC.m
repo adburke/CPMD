@@ -53,6 +53,11 @@
                                                  name:@"networkActive"
                                                object:nil];
     
+//    [[NSNotificationCenter defaultCenter] addObserver:self
+//                                             selector:@selector(clearData)
+//                                                 name:UIApplicationDidBecomeActiveNotification
+//                                               object:self];
+    
     
     self.appDelegate = (AppDelegate*)[[UIApplication sharedApplication] delegate];
     self.entryManager = [EntryManager sharedInstance];
@@ -99,11 +104,11 @@
                 // The find succeeded.
                 NSLog(@"Successfully retrieved %d entryies.", objects.count);
                 // Do something with the found objects
-                self.entryObjects = [objects copy];
+//                self.entryObjects = [objects copy];
                 
                 // Create local cache from Parse DB data if cache is empty
                 [self.entryManager createDataFromParse:[objects copy]];
-                
+                self.entryObjects = [self.entryManager.entryArray copy];
                 [self.tableView reloadData];
             } else {
                 // Log details of the failure
@@ -170,17 +175,17 @@
     static NSString *CellIdentifier = @"EntryCell";
     EntryCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
     if (cell) {
-        if (self.entryManager.entryArray != NULL) {
+//        if (self.entryManager.entryArray != NULL) {
             cell.name.text = [self.entryObjects[indexPath.row] valueForKey:@"name"];
             cell.message.text = [self.entryObjects[indexPath.row] valueForKey:@"message"];
             NSNumber *number = [self.entryObjects[indexPath.row] valueForKey:@"number"];
             cell.number.text =[number stringValue];
-        } else {
-            cell.name.text = [self.entryObjects[indexPath.row] objectForKey:@"name"];
-            cell.message.text = [self.entryObjects[indexPath.row] objectForKey:@"message"];
-            NSNumber *number = [self.entryObjects[indexPath.row] objectForKey:@"number"];
-            cell.number.text =[number stringValue];
-        }
+//        } else {
+//            cell.name.text = [self.entryObjects[indexPath.row] objectForKey:@"name"];
+//            cell.message.text = [self.entryObjects[indexPath.row] objectForKey:@"message"];
+//            NSNumber *number = [self.entryObjects[indexPath.row] objectForKey:@"number"];
+//            cell.number.text =[number stringValue];
+//        }
     }
     
     return cell;
