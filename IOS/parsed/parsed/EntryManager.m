@@ -160,6 +160,7 @@
                         NSLog(@"Successfully saved entry to Parse DB.");
                         
                         [self updateCacheIdData:object];
+                        [self setModifiedTime];
                         
                     } else {
                         // Log details of the failure
@@ -177,6 +178,7 @@
     } else {
         [self.offlineSavedArray addObject:entry];
         [NSKeyedArchiver archiveRootObject:self.offlineSavedArray toFile:self.filePathOfflineSave];
+        [self setModifiedTime];
         
     }
 }
@@ -195,6 +197,7 @@
                 
                 if (!error) {
                     NSLog(@"Successfully saved entry to Parse DB.");
+                    [self setModifiedTime];
                 } else {
                     
                     NSLog(@"Error: %@", [error localizedDescription]);
@@ -211,7 +214,7 @@
                 [self.offlineSavedArray removeObject:entryOfflineSaved];
             }
         }
-        
+        [self setModifiedTime];
         [self.offlineSavedArray addObject:entry];
         [NSKeyedArchiver archiveRootObject:self.offlineSavedArray toFile:self.filePathOfflineSave];
         
@@ -223,6 +226,7 @@
     for (PFObject *object in parseObjects) {
         EntryData *entry = [[EntryData alloc] initWithUUID:[object objectForKey:@"UUID"] message:[object objectForKey:@"message"] name:[object objectForKey:@"name"] number:[object objectForKey:@"number"] parseObjId:object.objectId];
         [self saveEntryData:entry isNewCache:YES isEditingItem:NO];
+        [self updateLocalUpdateTime];
     }
 }
 
@@ -251,13 +255,14 @@
                 } else {
                     [object deleteEventually];
                 }
-                
-                
+                [self setModifiedTime];
             } else {
                 // Log details of the failure
                 NSLog(@"Error: %@ %@", error, [error userInfo]);
             }
         }];
+    } else {
+        [self setModifiedTime];
     }
 }
 
@@ -297,13 +302,101 @@
     }
     [PFObject saveAllInBackground:parseObjects block:^(BOOL succeeded, NSError *error) {
         if (succeeded) {
-            // Show success message
-//            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Save to Cloud" message:@"Successfully saved offline created Entry(s)" delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
-//            [alert show];
             [self.offlineSavedArray removeAllObjects];
             [NSKeyedArchiver archiveRootObject:self.offlineSavedArray toFile:self.filePathOfflineSave];
+            PFQuery *query = [PFQuery queryWithClassName:@"Status"];
+            [query whereKey:@"userId" equalTo:[PFUser currentUser].objectId];
+            [query getFirstObjectInBackgroundWithBlock:^(PFObject *object, NSError *error) {
+                if (!error) {
+                    // The find succeeded.
+                    object[@"updateTime"] = [[NSUserDefaults standardUserDefaults] objectForKey:@"updateTime"];;
+                    [object saveInBackground];
+                } else {
+                    // Create status entry for user
+                    PFObject *updateStatus = [PFObject objectWithClassName:@"Status"];
+                    updateStatus[@"userId"] = [PFUser currentUser].objectId;
+                    updateStatus[@"updateTime"] = [[NSUserDefaults standardUserDefaults] objectForKey:@"updateTime"];
+                    updateStatus.ACL = [PFACL ACLWithUser:[PFUser currentUser]];
+                    [updateStatus saveInBackground];
+                }
+            }];
         }
     }];
 }
+
+- (void)setModifiedTime {
+    NSDate *date = [NSDate date];
+    NSNumber *epoc = [NSNumber numberWithLongLong:[@(floor([date timeIntervalSince1970])) longLongValue]];
+    
+    if (self.appDelegate.isNetworkActive) {
+        PFQuery *query = [PFQuery queryWithClassName:@"Status"];
+        [query whereKey:@"userId" equalTo:[PFUser currentUser].objectId];
+        [query getFirstObjectInBackgroundWithBlock:^(PFObject *object, NSError *error) {
+            if (!error) {
+                // The find succeeded.
+                object[@"updateTime"] = epoc;
+                [object saveInBackground];
+            } else {
+                // Create status entry for user
+                PFObject *updateStatus = [PFObject objectWithClassName:@"Status"];
+                updateStatus[@"userId"] = [PFUser currentUser].objectId;
+                updateStatus[@"updateTime"] = epoc;
+                updateStatus.ACL = [PFACL ACLWithUser:[PFUser currentUser]];
+                [updateStatus saveInBackground];
+            }
+        }];
+    }
+    [[NSUserDefaults standardUserDefaults] setObject:epoc forKey:@"updateTime"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+
+- (BOOL)isUpdateAvailable {
+    NSNumber *updateTime = [[NSUserDefaults standardUserDefaults] objectForKey:@"updateTime"];
+    if (updateTime != nil) {
+        if (self.appDelegate.isNetworkActive) {
+            PFQuery *query = [PFQuery queryWithClassName:@"Status"];
+            [query whereKey:@"userId" equalTo:[PFUser currentUser].objectId];
+            PFObject *updateStatus = [query getFirstObject];
+            if (updateStatus) {
+                // The find succeeded.
+                NSNumber *numFromParse = updateStatus[@"updateTime"];
+                NSLog(@"Stored time = %@", updateTime);
+                NSLog(@"Parse time = %@", numFromParse);
+                
+                if ([updateTime isEqualToNumber:numFromParse] || [updateTime intValue] > [numFromParse intValue]) {
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        }
+
+    }
+    return false;
+}
+
+// Destructive and not good for real use
+- (void)newDataUpdate {
+    [self.entryArray removeAllObjects];
+    [NSKeyedArchiver archiveRootObject:self.entryArray toFile:self.filePathCache];
+    
+    [self updateLocalUpdateTime];
+}
+
+- (void)updateLocalUpdateTime {
+    if (self.appDelegate.isNetworkActive) {
+        PFQuery *query = [PFQuery queryWithClassName:@"Status"];
+        [query whereKey:@"userId" equalTo:[PFUser currentUser].objectId];
+        [query getFirstObjectInBackgroundWithBlock:^(PFObject *object, NSError *error) {
+            if (!error) {
+                // The find succeeded.
+                [[NSUserDefaults standardUserDefaults] setObject:object[@"updateTime"] forKey:@"updateTime"];
+                [[NSUserDefaults standardUserDefaults] synchronize];
+            }
+        }];
+    }
+}
+
+
 
 @end

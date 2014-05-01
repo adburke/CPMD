@@ -12,9 +12,15 @@ package com.example.app;
 
 import android.app.AlertDialog;
 import android.app.ListActivity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -22,22 +28,20 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQueryAdapter;
-import com.parse.SaveCallback;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQueryLoadListener<ParseObject>, AdapterView.OnItemLongClickListener {
+public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQueryLoadListener<ParseObject>,
+        AdapterView.OnItemLongClickListener {
 
     Context mContext;
     EntryListAdapter entryListAdapter;
@@ -80,6 +84,60 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
 
         getListView().setOnItemLongClickListener(this);
 
+        // Polling method to check server for new data
+        final Handler handler = new Handler();
+        Runnable runnable = new Runnable() {
+
+            @Override
+            public void run() {
+                try{
+                    Log.i("test","this will run every 30s");
+                    Boolean status = ConnectionStatus.getNetworkStatus(mContext);
+                    if (status) {
+                        
+                    } else {
+
+                    }
+                }
+                catch (Exception e) {
+                    // TODO: handle exception
+                }
+                finally{
+                    //also call the same runnable
+                    handler.postDelayed(this, 30*1000);
+                }
+            }
+        };
+        handler.postDelayed(runnable, 30*1000);
+
+    }
+
+    private BroadcastReceiver connectivityReceiver = new BroadcastReceiver () {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
+                Boolean status = ConnectionStatus.getNetworkStatus(mContext);
+                if (status) {
+                    Log.i("CONN_STATUS", "CONNECTED!");
+                }else {
+                    Log.i("CONN_STATUS", "DISCONNECTED!");
+                }
+            }
+        }
+    };
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(connectivityReceiver);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        IntentFilter netFilter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(connectivityReceiver, netFilter);
     }
 
     private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
@@ -375,5 +433,6 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
 
         });
     }
+
 
 }

@@ -11,7 +11,9 @@
 
 @interface EntryManager : NSObject
 
+// Holds cached entries
 @property (nonatomic, strong) NSMutableArray *entryArray;
+// Holds entries created while offline to be saved when reconnected
 @property (nonatomic, strong) NSMutableArray *offlineSavedArray;
 
 +(EntryManager*)sharedInstance;
@@ -23,5 +25,9 @@
 - (void)deleteEntryData:(EntryData*)entry;
 - (void)createDataFromParse:(NSArray*)parseObjects;
 - (void)updateParseWithSavedData;
+
+- (void)setModifiedTime;
+- (BOOL)isUpdateAvailable;
+- (void)newDataUpdate;
                              
 @end

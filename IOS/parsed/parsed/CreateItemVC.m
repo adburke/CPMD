@@ -130,6 +130,7 @@
     }
 }
 
+// Used for AlertView created in EntryManager on Save or Update
 - (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex
 {
     if (!self.messageCheck || !self.nameCheck || !self.numberCheck) {

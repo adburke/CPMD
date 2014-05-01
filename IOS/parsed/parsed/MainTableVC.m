@@ -19,6 +19,7 @@
 @property (nonatomic, strong) NSArray *entryObjects;
 @property (nonatomic, strong) EntryManager *entryManager;
 @property (nonatomic, strong) AppDelegate *appDelegate;
+@property (nonatomic, strong) NSTimer *timer;
 
 @end
 
@@ -37,26 +38,15 @@
 {
     [super viewDidLoad];
     
-    // Uncomment the following line to preserve selection between presentations.
-    // self.clearsSelectionOnViewWillAppear = NO;
-    
-    
-//    self.navigationItem.rightBarButtonItem  = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(addItem)];
-    
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(reloadData)
                                                  name:@"refreshTable"
                                                object:nil];
-    
+
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(sendParseData)
                                                  name:@"networkActive"
                                                object:nil];
-    
-//    [[NSNotificationCenter defaultCenter] addObserver:self
-//                                             selector:@selector(clearData)
-//                                                 name:UIApplicationDidBecomeActiveNotification
-//                                               object:self];
     
     
     self.appDelegate = (AppDelegate*)[[UIApplication sharedApplication] delegate];
@@ -64,11 +54,9 @@
     
     self.entryObjects = [[NSArray alloc] init];
     
-    PFUser *currentUser = [PFUser currentUser];
-    
-    if (currentUser) {
-        [self reloadData];
-    }
+    // 20sec polling for updates
+    self.timer = [NSTimer scheduledTimerWithTimeInterval:20.0 target:self
+                                                    selector:@selector(reloadData) userInfo:nil repeats:YES];
     
     
 }
@@ -93,6 +81,29 @@
 
 - (void)reloadData
 {
+    if (self.appDelegate.isNetworkActive) {
+        BOOL status = [self.entryManager isUpdateAvailable];
+        if (status) {
+            PFQuery *query = [PFQuery queryWithClassName:@"Entry"];
+            [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+                if (!error) {
+                    // The find succeeded.
+                    NSLog(@"Successfully retrieved %d entryies.", (int)objects.count);
+                    // Clear everything out for the sake of this demo * not good otherwise
+                    [self.entryManager newDataUpdate];
+                    
+                    [self.entryManager createDataFromParse:[objects copy]];
+                    self.entryObjects = [self.entryManager.entryArray copy];
+                    [self.tableView reloadData];
+                } else {
+                    // Log details of the failure
+                    NSLog(@"Error: %@ %@", error, [error userInfo]);
+                }
+            }];
+            return;
+        }
+    }
+    
     // Check if local data is available and load that first else check on Parse.com
     if ([self.entryManager.entryArray count] != 0) {
         self.entryObjects = [self.entryManager.entryArray copy];
@@ -102,9 +113,7 @@
         [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
             if (!error) {
                 // The find succeeded.
-                NSLog(@"Successfully retrieved %d entryies.", objects.count);
-                // Do something with the found objects
-//                self.entryObjects = [objects copy];
+                NSLog(@"Successfully retrieved %d entryies.", (int)objects.count);
                 
                 // Create local cache from Parse DB data if cache is empty
                 [self.entryManager createDataFromParse:[objects copy]];
@@ -128,6 +137,7 @@
     } else{
         NSLog(@"sendParseData: no data to send");
     }
+    
 }
 
 - (IBAction)onPress:(id)sender
@@ -175,17 +185,12 @@
     static NSString *CellIdentifier = @"EntryCell";
     EntryCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
     if (cell) {
-//        if (self.entryManager.entryArray != NULL) {
-            cell.name.text = [self.entryObjects[indexPath.row] valueForKey:@"name"];
-            cell.message.text = [self.entryObjects[indexPath.row] valueForKey:@"message"];
-            NSNumber *number = [self.entryObjects[indexPath.row] valueForKey:@"number"];
-            cell.number.text =[number stringValue];
-//        } else {
-//            cell.name.text = [self.entryObjects[indexPath.row] objectForKey:@"name"];
-//            cell.message.text = [self.entryObjects[indexPath.row] objectForKey:@"message"];
-//            NSNumber *number = [self.entryObjects[indexPath.row] objectForKey:@"number"];
-//            cell.number.text =[number stringValue];
-//        }
+
+        cell.name.text = [self.entryObjects[indexPath.row] valueForKey:@"name"];
+        cell.message.text = [self.entryObjects[indexPath.row] valueForKey:@"message"];
+        NSNumber *number = [self.entryObjects[indexPath.row] valueForKey:@"number"];
+        cell.number.text =[number stringValue];
+
     }
     
     return cell;
@@ -214,23 +219,6 @@
         // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
     }   
 }
-
-
-/*
-// Override to support rearranging the table view.
-- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath
-{
-}
-*/
-
-/*
-// Override to support conditional rearranging of the table view.
-- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the item to be re-orderable.
-    return YES;
-}
-*/
 
 
 #pragma mark - Navigation

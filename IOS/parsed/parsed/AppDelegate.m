@@ -24,11 +24,6 @@
     
     [PFAnalytics trackAppOpenedWithLaunchOptions:launchOptions];
     
-    // Remote notification registration
-    [application registerForRemoteNotificationTypes:UIRemoteNotificationTypeBadge|
-     UIRemoteNotificationTypeAlert|
-     UIRemoteNotificationTypeSound];
-    
     // Network connectivity check
     Reachability* reach = [Reachability reachabilityWithHostname:@"www.parse.com"];
     // Set the blocks
@@ -37,6 +32,7 @@
         NSLog(@"REACHABLE!");
         self.isNetworkActive = YES;
         [[NSNotificationCenter defaultCenter] postNotificationName:@"networkActive" object:self];
+
     };
     
     reach.unreachableBlock = ^(Reachability*reach)
@@ -49,23 +45,10 @@
     [reach startNotifier];
     
     
-    
     return YES;
 }
 
-- (void)application:(UIApplication *)application
-didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
-{
-    // Store the deviceToken in the current installation and save it to Parse.
-    PFInstallation *currentInstallation = [PFInstallation currentInstallation];
-    [currentInstallation setDeviceTokenFromData:deviceToken];
-    [currentInstallation saveInBackground];
-}
 
-- (void)application:(UIApplication *)application
-didReceiveRemoteNotification:(NSDictionary *)userInfo {
-    [PFPush handlePush:userInfo];
-}
 							
 - (void)applicationWillResignActive:(UIApplication *)application
 {
