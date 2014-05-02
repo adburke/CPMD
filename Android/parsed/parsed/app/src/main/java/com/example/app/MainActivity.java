@@ -17,6 +17,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -33,11 +34,19 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.parse.FindCallback;
+import com.parse.GetCallback;
+import com.parse.ParseACL;
+import com.parse.ParseException;
 import com.parse.ParseObject;
+import com.parse.ParseQuery;
 import com.parse.ParseQueryAdapter;
+import com.parse.ParseUser;
+import com.parse.SaveCallback;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQueryLoadListener<ParseObject>,
@@ -47,8 +56,13 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
     EntryListAdapter entryListAdapter;
     CachedEntryListAdapter cachedEntryListAdapter;
 
+    private static final String cache_file = "entry_data";
+    private static final String offline_save_file = "offline_save_data";
+
     private static final String data_file = "entry_data";
+
     List<Entry> cachedEntries;
+    List<Entry> offlineSavedArray;
 
     private ActionMode mActionMode;
 
@@ -62,6 +76,14 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
 
         mContext = this;
 
+        try {
+            offlineSavedArray = (List<Entry>) EntryManager.readObject(mContext, offline_save_file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
         // Retrieve the list from internal storage
         try {
             cachedEntries = (List<Entry>) EntryManager.readObject(mContext, data_file);
@@ -73,14 +95,13 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
         }
         // If internal storage is empty pull from parse.com
         if (cachedEntries == null) {
-            entryListAdapter = new EntryListAdapter(mContext);
-            entryListAdapter.addOnQueryLoadListener(this);
-            setListAdapter(entryListAdapter);
-            entryListAdapter.loadObjects();
+            createDataFromParse();
         } else {
             setListAdapter(cachedEntryListAdapter);
 
         }
+
+        isUpdateAvailable(mContext);
 
         getListView().setOnItemLongClickListener(this);
 
@@ -91,10 +112,10 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
             @Override
             public void run() {
                 try{
-                    Log.i("test","this will run every 30s");
+                    Log.i("test","this will run every 20s");
                     Boolean status = ConnectionStatus.getNetworkStatus(mContext);
                     if (status) {
-                        
+                        isUpdateAvailable(mContext);
                     } else {
 
                     }
@@ -104,11 +125,11 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
                 }
                 finally{
                     //also call the same runnable
-                    handler.postDelayed(this, 30*1000);
+                    handler.postDelayed(this, 20*1000);
                 }
             }
         };
-        handler.postDelayed(runnable, 30*1000);
+        handler.postDelayed(runnable, 20*1000);
 
     }
 
@@ -120,6 +141,7 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
                 Boolean status = ConnectionStatus.getNetworkStatus(mContext);
                 if (status) {
                     Log.i("CONN_STATUS", "CONNECTED!");
+
                 }else {
                     Log.i("CONN_STATUS", "DISCONNECTED!");
                 }
@@ -164,7 +186,7 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
             switch (item.getItemId()) {
                 case R.id.item_delete:
                     Log.i("EDIT MENU", "Delete Selected.");
-                    //removeRow(itemRow, itemPosition);
+                    deleteEntryData(cachedEntries.get(itemPosition), mContext);
                     mode.finish(); // Action picked, so close the CAB
                     return true;
 
@@ -204,9 +226,14 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
                 return true;
 
             case R.id.action_logout:
-                Log.i("MAIN", "Logout selected");
-
+                Log.i("MAIN", "Log Out Selected.");
+                ParseUser.logOut();
+                Intent intent = new Intent(mContext, LoginActivity.class);
+                startActivity(intent);
+                // Removes activity from the stack so we can not navigate back
+                finish();
                 return true;
+
         }
         return super.onOptionsItemSelected(item);
     }
@@ -314,6 +341,7 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
                 entryMessage.clearFocus();
                 entryNumber.clearFocus();
 
+                Boolean valid = false;
 
                 if (entryName.getText().toString().isEmpty() || entryMessage.getText().toString().isEmpty() || entryNumber.getText().toString().isEmpty() ) {
                     Log.i("Save Entry", "Inputs can't be empty!");
@@ -323,16 +351,26 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
                 } else if (!entryNumber.getText().toString().isEmpty()) {
                     try {
                         int num = Integer.parseInt(entryNumber.getText().toString());
+                        valid = true;
                     } catch (NumberFormatException e) {
                         errorMessage.setText("Input a valid number!");
                         errorMessage.setVisibility(View.VISIBLE);
+                        valid = false;
                     }
+                }
+
+                if (valid) {
+                    String name = entryName.getText().toString();
+                    String message = entryMessage.getText().toString();
+                    int number = Integer.parseInt(entryNumber.getText().toString());
+
+                    Entry entryToSave = new Entry(name, message, number);
+                    saveToParse(entryToSave, mContext);
 
 
                 }
+                dialog.dismiss();
             }
-
-
 
         });
     }
@@ -409,6 +447,7 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
                     } catch (NumberFormatException e) {
                         errorMessage.setText("Input a valid number!");
                         errorMessage.setVisibility(View.VISIBLE);
+                        valid = false;
                     }
 
 
@@ -420,10 +459,13 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
                     entryToEdit.setNumber((Number) Integer.parseInt(entryNumber.getText().toString()));
 
                     try {
+                        // Write to local cache
                         EntryManager.writeObject(mContext,data_file,cachedEntries);
+                        // Save to Parse.com
+                        updateToParse(entryToEdit, mContext);
 
                         cachedEntryListAdapter.notifyDataSetChanged();
-
+                        setModifiedTime(mContext);
                         dialog.dismiss();
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -432,6 +474,339 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
             }
 
         });
+    }
+
+    public void updateToParse(final Entry entry, final Context mContext) {
+        Boolean status = ConnectionStatus.getNetworkStatus(mContext);
+        for (Entry cachedEntry : cachedEntries) {
+            if (cachedEntry.getUUID().equals(entry.getUUID())) {
+                cachedEntry.setName(entry.getName());
+                cachedEntry.setMessage(entry.getMessage());
+                cachedEntry.setNumber(entry.getNumber());
+            }
+        }
+
+
+        if (status) {
+            ParseQuery<ParseObject> query = ParseQuery.getQuery("Entry");
+            query.getInBackground(entry.getParseObjId(), new GetCallback<ParseObject>() {
+                public void done(ParseObject object, ParseException e) {
+                    if (e == null) {
+                        object.put("message", entry.getMessage());
+                        object.put("name", entry.getName());
+                        object.put("number", entry.getNumber());
+                        object.saveInBackground(new SaveCallback() {
+                            public void done(ParseException e) {
+                                if (e == null) {
+                                    setModifiedTime(mContext);
+                                }
+                            }
+                        });
+
+                    }
+                }
+            });
+        } else {
+            for (Entry entryOfflineSaved : offlineSavedArray) {
+                if (entryOfflineSaved.getUUID().equals(entry.getUUID())) {
+                    offlineSavedArray.remove(entryOfflineSaved);
+                }
+            }
+            setModifiedTime(mContext);
+            offlineSavedArray.add(entry);
+            try {
+                EntryManager.writeObject(mContext, offline_save_file, offlineSavedArray);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+    }
+
+    public void saveToParse(final Entry entry, final Context mContext) {
+        Boolean status = ConnectionStatus.getNetworkStatus(mContext);
+
+        cachedEntries.add(entry);
+        if (cachedEntryListAdapter == null) {
+            cachedEntryListAdapter = new CachedEntryListAdapter(mContext, cachedEntries);
+            setListAdapter(cachedEntryListAdapter);
+        } else {
+            cachedEntryListAdapter.notifyDataSetChanged();
+        }
+
+        try {
+            EntryManager.writeObject(mContext, data_file, cachedEntries);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if (status) {
+
+            ParseObject entryToSave = new ParseObject("Entry");
+            entryToSave.put("name", entry.getName());
+            entryToSave.put("message", entry.getMessage());
+            entryToSave.put("number", entry.getNumber());
+            entryToSave.put("UUID", entry.getUUID());
+
+            entryToSave.saveInBackground(new SaveCallback() {
+                public void done(ParseException e) {
+                    if (e == null) {
+                        ParseQuery<ParseObject> query = ParseQuery.getQuery("Entry");
+                        query.whereEqualTo("UUID", entry.getUUID());
+                        query.getFirstInBackground(new GetCallback<ParseObject>() {
+                            public void done(ParseObject object, ParseException e) {
+                                if (object != null) {
+                                    updateCacheIdData(object, mContext);
+                                    setModifiedTime(mContext);
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+
+        } else {
+            offlineSavedArray.add(entry);
+            try {
+                //EntryManager.writeObject(mContext, cache_file, cachedEntries);
+                EntryManager.writeObject(mContext, offline_save_file, offlineSavedArray);
+                setModifiedTime(mContext);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+    }
+
+    public void deleteEntryData(Entry entry, final Context mContext) {
+
+        Log.i("UUID = " , entry.getUUID());
+        Boolean status = ConnectionStatus.getNetworkStatus(mContext);
+        if (status) {
+            ParseQuery<ParseObject> query = ParseQuery.getQuery("Entry");
+            query.whereContains("UUID", entry.getUUID());
+            query.getInBackground(entry.getParseObjId(), new GetCallback<ParseObject>() {
+                public void done(ParseObject object, ParseException e) {
+                    if (e == null) {
+                        Boolean statusCheck = ConnectionStatus.getNetworkStatus(mContext);
+                        if (statusCheck) {
+
+                            object.deleteInBackground();
+
+                        } else {
+                            object.deleteEventually();
+                        }
+                        setModifiedTime(mContext);
+                    }
+                }
+            });
+        } else {
+            setModifiedTime(mContext);
+        }
+
+        cachedEntries.remove(entry);
+        cachedEntryListAdapter.notifyDataSetChanged();
+        try {
+            EntryManager.writeObject(mContext, cache_file, cachedEntries);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
+    public void updateCacheIdData(ParseObject entry, Context mContext) {
+        for (Entry cachedEntry : cachedEntries) {
+            if (entry.getString("UUID").equals(cachedEntry.getUUID())) {
+                cachedEntry.setParseObjId(entry.getObjectId());
+            }
+        }
+        try {
+            EntryManager.writeObject(mContext, cache_file,cachedEntries);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void setModifiedTime(Context mContext) {
+        Date date = new Date();
+        final long epoch = date.getTime()/1000;
+
+        final Boolean status = ConnectionStatus.getNetworkStatus(mContext);
+        if (status) {
+            ParseQuery<ParseObject> query = ParseQuery.getQuery("Status");
+            query.whereEqualTo("userId", ParseUser.getCurrentUser().getObjectId());
+            query.getFirstInBackground(new GetCallback<ParseObject>() {
+                public void done(ParseObject object, ParseException e) {
+                    if (object != null) {
+                        object.put("updateTime", epoch);
+                        object.saveInBackground();
+                    } else {
+                        ParseObject updateStatusObj = new ParseObject("Status");
+                        updateStatusObj.put("userId", ParseUser.getCurrentUser().getObjectId());
+                        updateStatusObj.put("updateTime", epoch);
+                        updateStatusObj.setACL(new ParseACL(ParseUser.getCurrentUser()));
+                        updateStatusObj.saveInBackground();
+                    }
+                }
+            });
+        }
+        SharedPreferences preferences = mContext.getSharedPreferences("MyPreferences", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putLong("updateTime", epoch);
+        editor.commit();
+    }
+
+    // Implemented this method to remove parse saveEventually
+    // Updates parse.com with the correct offline data immediately when network returns
+    // Parse.com saveEventually proved unreliable
+    public void updateParseWithOfflineData(final Context mContext) {
+        List<ParseObject> parseObjects = new ArrayList<ParseObject>();
+        for (Entry entry : offlineSavedArray) {
+            ParseObject entryParse = new ParseObject("Entry");
+            if (entry.getParseObjId().length() != 0) {
+                entryParse.setObjectId(entry.getParseObjId());
+            }
+            entryParse.put("message", entry.getMessage());
+            entryParse.put("name", entry.getName());
+            entryParse.put("number", entry.getNumber());
+            entryParse.put("UUID", entry.getUUID());
+            parseObjects.add(entryParse);
+        }
+        ParseObject.saveAllInBackground(parseObjects,new SaveCallback() {
+            public void done(ParseException e) {
+                if (e == null) {
+                    offlineSavedArray.clear();
+                    try {
+                        EntryManager.writeObject(mContext, offline_save_file, offlineSavedArray);
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
+                    ParseQuery<ParseObject> query = ParseQuery.getQuery("Status");
+                    query.whereEqualTo("userId", ParseUser.getCurrentUser().getObjectId());
+                    query.getFirstInBackground(new GetCallback<ParseObject>() {
+                        public void done(ParseObject object, ParseException e) {
+                            SharedPreferences preferences = mContext.getSharedPreferences("MyPreferences", Context.MODE_PRIVATE);
+                            long time = preferences.getLong("updateTime", 0);
+                            if (object != null) {
+                                object.put("updateTime", time);
+                                object.saveInBackground();
+                            } else {
+                                ParseObject updateStatusObj = new ParseObject("Status");
+                                updateStatusObj.put("userId", ParseUser.getCurrentUser().getObjectId());
+                                updateStatusObj.put("updateTime", time);
+                                updateStatusObj.setACL(new ParseACL(ParseUser.getCurrentUser()));
+                                updateStatusObj.saveInBackground();
+                            }
+                        }
+                    });
+
+                }
+            }
+        });
+
+
+    }
+
+    public Boolean isUpdateAvailable(Context mContext) {
+        SharedPreferences preferences = mContext.getSharedPreferences("MyPreferences", Context.MODE_PRIVATE);
+        long updateTime = preferences.getLong("updateTime", 0);
+
+        if (updateTime != 0) {
+            final Boolean status = ConnectionStatus.getNetworkStatus(mContext);
+            if (status) {
+                ParseQuery<ParseObject> query = ParseQuery.getQuery("Status");
+                query.whereEqualTo("userId", ParseUser.getCurrentUser().getObjectId());
+                try {
+                    ParseObject updateStatus = query.getFirst();
+                    if (updateStatus != null) {
+                        long numFromParse = updateStatus.getLong("updateTime");
+                        Log.i("Stored time = ", String.valueOf(updateTime));
+                        Log.i("Parse time = ", String.valueOf(numFromParse));
+                        newDataUpdate(mContext);
+                    }
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return false;
+    }
+
+    public void newDataUpdate(Context mContext) {
+        cachedEntries.clear();
+        try {
+            EntryManager.writeObject(mContext, cache_file, cachedEntries);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        updateLocalUpdateTime(mContext);
+        createDataFromParse();
+    }
+
+    public static void updateLocalUpdateTime(final Context mContext) {
+        final Boolean status = ConnectionStatus.getNetworkStatus(mContext);
+        if (status) {
+            ParseQuery<ParseObject> query = ParseQuery.getQuery("Status");
+            query.whereEqualTo("userId", ParseUser.getCurrentUser().getObjectId());
+            query.getFirstInBackground(new GetCallback<ParseObject>() {
+                public void done(ParseObject object, ParseException e) {
+                    if (object != null) {
+                        long time = object.getLong("updateTime");
+                        Log.i("updateLocalUpdateTime", "Time from Parse = " + String.valueOf(time));
+                        SharedPreferences preferences = mContext.getSharedPreferences("MyPreferences", Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editor = preferences.edit();
+                        editor.putLong("updateTime", time);
+                        editor.commit();
+                    }
+                }
+            });
+        }
+    }
+
+    public void createDataFromParse(){
+        final Boolean status = ConnectionStatus.getNetworkStatus(mContext);
+        if (status) {
+
+            ParseQuery<ParseObject> query = ParseQuery.getQuery("Entry");
+            query.findInBackground(new FindCallback<ParseObject>() {
+                public void done(List<ParseObject> objects, ParseException e) {
+                    if (e == null) {
+                        for (ParseObject object : objects) {
+                            Entry entry = new Entry(object.getString("name"), object.getString("message"), object.getNumber("number"), object.getObjectId(), object.getString("UUID"));
+                            if (cachedEntries == null) {
+                                cachedEntries = new ArrayList<Entry>();
+                            }
+                            cachedEntries.add(entry);
+                            cachedEntryListAdapter = new CachedEntryListAdapter(mContext, cachedEntries);
+                            setListAdapter(cachedEntryListAdapter);
+                            try {
+                                EntryManager.writeObject(mContext,data_file,cachedEntries);
+                            } catch (IOException e1) {
+                                e1.printStackTrace();
+                            }
+                        }
+                    }
+
+                }
+            });
+
+            ParseQuery<ParseObject> query2 = ParseQuery.getQuery("Status");
+            query2.whereEqualTo("userId", ParseUser.getCurrentUser().getObjectId());
+            query2.getFirstInBackground(new GetCallback<ParseObject>() {
+                public void done(ParseObject object, ParseException e) {
+
+                    if (object != null) {
+                        SharedPreferences preferences = mContext.getSharedPreferences("MyPreferences", Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editor = preferences.edit();
+                        editor.putLong("updateTime", object.getLong("updateTime"));
+                        Log.i("updateTime = ", String.valueOf(object.getLong("updateTime")));
+                        editor.commit();
+                    }
+                }
+            });
+
+        }
     }
 
 

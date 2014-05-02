@@ -24,7 +24,7 @@
 - (void)saveEntryData:(EntryData*)entry isNewCache:(BOOL)isNewCache isEditingItem:(BOOL)isEditingItem;
 - (void)deleteEntryData:(EntryData*)entry;
 - (void)createDataFromParse:(NSArray*)parseObjects;
-- (void)updateParseWithSavedData;
+- (void)updateParseWithOfflineData;
 
 - (void)setModifiedTime;
 - (BOOL)isUpdateAvailable;

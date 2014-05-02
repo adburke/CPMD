@@ -90,6 +90,7 @@
                     // The find succeeded.
                     NSLog(@"Successfully retrieved %d entryies.", (int)objects.count);
                     // Clear everything out for the sake of this demo * not good otherwise
+                    // Did not have time to create a conflict resolution system
                     [self.entryManager newDataUpdate];
                     
                     [self.entryManager createDataFromParse:[objects copy]];
@@ -132,7 +133,7 @@
 - (void)sendParseData {
     NSLog(@"sendParseData fired");
     if ([self.entryManager.offlineSavedArray count] != 0) {
-        [self.entryManager updateParseWithSavedData];
+        [self.entryManager updateParseWithOfflineData];
         NSLog(@"sendParseData: fired EntryManager updateParseWithSavedData");
     } else{
         NSLog(@"sendParseData: no data to send");

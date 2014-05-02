@@ -104,7 +104,7 @@
     } else {
         // Editing an existing entry
         int entryIndex = 0;
-        for (int i = 0, j = self.entryArray.count; i<j ; i++) {
+        for (int i = 0, j = (int)self.entryArray.count; i<j ; i++) {
             if ([[self.entryArray[i] getUUID] isEqualToString:[entry getUUID]]) {
                 entryIndex = i;
                 EntryData *cachedEntry = self.entryArray[i];
@@ -118,7 +118,7 @@
 
         BOOL saveStatus = [NSKeyedArchiver archiveRootObject:self.entryArray toFile:self.filePathCache];
         
-        [self updateToParse:[self.entryArray objectAtIndex:entryIndex] indexNum:entryIndex];
+        [self updateToParse:[self.entryArray objectAtIndex:entryIndex]];
         
         if (saveStatus) {
             // Show success message
@@ -183,7 +183,7 @@
     }
 }
 
-- (void)updateToParse:(EntryData*)entry indexNum:(int)indexNum
+- (void)updateToParse:(EntryData*)entry
 {
     if (self.appDelegate.isNetworkActive) {
         PFQuery *query = [PFQuery queryWithClassName:@"Entry"];
@@ -282,7 +282,7 @@
 // Implemented this method to remove parse saveEventually
 // Updates parse.com with the correct offline data immediately when network returns
 // Parse.com saveEventually proved unreliable
-- (void)updateParseWithSavedData {
+- (void)updateParseWithOfflineData {
     NSMutableArray *parseObjects;
     if (parseObjects == NULL) {
         parseObjects = [[NSMutableArray alloc] init];
@@ -326,7 +326,7 @@
 
 - (void)setModifiedTime {
     NSDate *date = [NSDate date];
-    NSNumber *epoc = [NSNumber numberWithLongLong:[@(floor([date timeIntervalSince1970])) longLongValue]];
+    NSNumber *epoch = [NSNumber numberWithLongLong:[@(floor([date timeIntervalSince1970])) longLongValue]];
     
     if (self.appDelegate.isNetworkActive) {
         PFQuery *query = [PFQuery queryWithClassName:@"Status"];
@@ -334,19 +334,19 @@
         [query getFirstObjectInBackgroundWithBlock:^(PFObject *object, NSError *error) {
             if (!error) {
                 // The find succeeded.
-                object[@"updateTime"] = epoc;
+                object[@"updateTime"] = epoch;
                 [object saveInBackground];
             } else {
                 // Create status entry for user
                 PFObject *updateStatus = [PFObject objectWithClassName:@"Status"];
                 updateStatus[@"userId"] = [PFUser currentUser].objectId;
-                updateStatus[@"updateTime"] = epoc;
+                updateStatus[@"updateTime"] = epoch;
                 updateStatus.ACL = [PFACL ACLWithUser:[PFUser currentUser]];
                 [updateStatus saveInBackground];
             }
         }];
     }
-    [[NSUserDefaults standardUserDefaults] setObject:epoc forKey:@"updateTime"];
+    [[NSUserDefaults standardUserDefaults] setObject:epoch forKey:@"updateTime"];
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
