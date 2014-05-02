@@ -84,6 +84,10 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
             e.printStackTrace();
         }
 
+        if (offlineSavedArray == null) {
+            offlineSavedArray = new ArrayList<Entry>();
+        }
+
         Boolean checkUpdates = isUpdateAvailable(mContext);
 
         if (!checkUpdates) {
@@ -92,7 +96,7 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
                 cachedEntries = (List<Entry>) EntryManager.readObject(mContext, data_file);
                 cachedEntryListAdapter = new CachedEntryListAdapter(mContext, cachedEntries);
                 setListAdapter(cachedEntryListAdapter);
-                
+
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (ClassNotFoundException e) {
@@ -115,6 +119,9 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
                     Boolean status = ConnectionStatus.getNetworkStatus(mContext);
                     if (status) {
                         isUpdateAvailable(mContext);
+                        if (offlineSavedArray.size() > 0) {
+                            updateParseWithOfflineData(mContext);
+                        }
                     } else {
 
                     }
@@ -661,48 +668,51 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
     // Parse.com saveEventually proved unreliable
     public void updateParseWithOfflineData(final Context mContext) {
         List<ParseObject> parseObjects = new ArrayList<ParseObject>();
-        for (Entry entry : offlineSavedArray) {
-            ParseObject entryParse = new ParseObject("Entry");
-            if (entry.getParseObjId().length() != 0) {
-                entryParse.setObjectId(entry.getParseObjId());
-            }
-            entryParse.put("message", entry.getMessage());
-            entryParse.put("name", entry.getName());
-            entryParse.put("number", entry.getNumber());
-            entryParse.put("UUID", entry.getUUID());
-            parseObjects.add(entryParse);
-        }
-        ParseObject.saveAllInBackground(parseObjects,new SaveCallback() {
-            public void done(ParseException e) {
-                if (e == null) {
-                    offlineSavedArray.clear();
-                    try {
-                        EntryManager.writeObject(mContext, offline_save_file, offlineSavedArray);
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
-                    }
-                    ParseQuery<ParseObject> query = ParseQuery.getQuery("Status");
-                    query.whereEqualTo("userId", ParseUser.getCurrentUser().getObjectId());
-                    query.getFirstInBackground(new GetCallback<ParseObject>() {
-                        public void done(ParseObject object, ParseException e) {
-                            SharedPreferences preferences = mContext.getSharedPreferences("MyPreferences", Context.MODE_PRIVATE);
-                            long time = preferences.getLong("updateTime", 0);
-                            if (object != null) {
-                                object.put("updateTime", time);
-                                object.saveInBackground();
-                            } else {
-                                ParseObject updateStatusObj = new ParseObject("Status");
-                                updateStatusObj.put("userId", ParseUser.getCurrentUser().getObjectId());
-                                updateStatusObj.put("updateTime", time);
-                                updateStatusObj.setACL(new ParseACL(ParseUser.getCurrentUser()));
-                                updateStatusObj.saveInBackground();
-                            }
-                        }
-                    });
-
+        if (offlineSavedArray.size() > 0) {
+            for (Entry entry : offlineSavedArray) {
+                ParseObject entryParse = new ParseObject("Entry");
+                if (entry.getParseObjId().length() != 0) {
+                    entryParse.setObjectId(entry.getParseObjId());
                 }
+                entryParse.put("message", entry.getMessage());
+                entryParse.put("name", entry.getName());
+                entryParse.put("number", entry.getNumber());
+                entryParse.put("UUID", entry.getUUID());
+                parseObjects.add(entryParse);
             }
-        });
+            ParseObject.saveAllInBackground(parseObjects,new SaveCallback() {
+                public void done(ParseException e) {
+                    if (e == null) {
+                        offlineSavedArray.clear();
+                        try {
+                            EntryManager.writeObject(mContext, offline_save_file, offlineSavedArray);
+                        } catch (IOException e1) {
+                            e1.printStackTrace();
+                        }
+                        ParseQuery<ParseObject> query = ParseQuery.getQuery("Status");
+                        query.whereEqualTo("userId", ParseUser.getCurrentUser().getObjectId());
+                        query.getFirstInBackground(new GetCallback<ParseObject>() {
+                            public void done(ParseObject object, ParseException e) {
+                                SharedPreferences preferences = mContext.getSharedPreferences("MyPreferences", Context.MODE_PRIVATE);
+                                long time = preferences.getLong("updateTime", 0);
+                                if (object != null) {
+                                    object.put("updateTime", time);
+                                    object.saveInBackground();
+                                } else {
+                                    ParseObject updateStatusObj = new ParseObject("Status");
+                                    updateStatusObj.put("userId", ParseUser.getCurrentUser().getObjectId());
+                                    updateStatusObj.put("updateTime", time);
+                                    updateStatusObj.setACL(new ParseACL(ParseUser.getCurrentUser()));
+                                    updateStatusObj.saveInBackground();
+                                }
+                            }
+                        });
+
+                    }
+                }
+            });
+        }
+
 
 
     }
@@ -733,10 +743,10 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
                     e.printStackTrace();
                 }
             }
+
         } else {
             newDataUpdate(mContext);
         }
-
         return false;
     }
 
@@ -744,8 +754,12 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
         if (cachedEntries != null) {
             cachedEntries.clear();
         }
+        if (offlineSavedArray != null) {
+            offlineSavedArray.clear();
+        }
 
         try {
+            EntryManager.writeObject(mContext, offline_save_file, offlineSavedArray);
             EntryManager.writeObject(mContext, cache_file, cachedEntries);
         } catch (IOException e) {
             e.printStackTrace();
