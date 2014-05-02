@@ -84,18 +84,23 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
             e.printStackTrace();
         }
 
-        // Retrieve the list from internal storage
-        try {
-            cachedEntries = (List<Entry>) EntryManager.readObject(mContext, data_file);
-            cachedEntryListAdapter = new CachedEntryListAdapter(mContext, cachedEntries);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+        Boolean checkUpdates = isUpdateAvailable(mContext);
+
+        if (!checkUpdates) {
+            // Retrieve the list from internal storage
+            try {
+                cachedEntries = (List<Entry>) EntryManager.readObject(mContext, data_file);
+                cachedEntryListAdapter = new CachedEntryListAdapter(mContext, cachedEntries);
+                setListAdapter(cachedEntryListAdapter);
+                
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
         }
 
 
-        isUpdateAvailable(mContext);
 
         getListView().setOnItemLongClickListener(this);
 
@@ -717,7 +722,12 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
                         long numFromParse = updateStatus.getLong("updateTime");
                         Log.i("Stored time = ", String.valueOf(updateTime));
                         Log.i("Parse time = ", String.valueOf(numFromParse));
-                        newDataUpdate(mContext);
+                        if (updateTime < numFromParse) {
+                            newDataUpdate(mContext);
+                            return true;
+                        } else {
+                            return false;
+                        }
                     }
                 } catch (ParseException e) {
                     e.printStackTrace();
