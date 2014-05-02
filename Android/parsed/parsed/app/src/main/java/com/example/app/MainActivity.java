@@ -93,13 +93,7 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
-        // If internal storage is empty pull from parse.com
-        if (cachedEntries == null) {
-            createDataFromParse();
-        } else {
-            setListAdapter(cachedEntryListAdapter);
 
-        }
 
         isUpdateAvailable(mContext);
 
@@ -112,7 +106,7 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
             @Override
             public void run() {
                 try{
-                    Log.i("test","this will run every 20s");
+                    Log.i("test","this will run every 60s");
                     Boolean status = ConnectionStatus.getNetworkStatus(mContext);
                     if (status) {
                         isUpdateAvailable(mContext);
@@ -729,12 +723,18 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
                     e.printStackTrace();
                 }
             }
+        } else {
+            newDataUpdate(mContext);
         }
+
         return false;
     }
 
     public void newDataUpdate(Context mContext) {
-        cachedEntries.clear();
+        if (cachedEntries != null) {
+            cachedEntries.clear();
+        }
+
         try {
             EntryManager.writeObject(mContext, cache_file, cachedEntries);
         } catch (IOException e) {
