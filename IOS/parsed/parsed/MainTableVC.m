@@ -55,7 +55,7 @@
     self.entryObjects = [[NSArray alloc] init];
     
     // 20sec polling for updates
-    self.timer = [NSTimer scheduledTimerWithTimeInterval:20.0 target:self
+    self.timer = [NSTimer scheduledTimerWithTimeInterval:60.0 target:self
                                                     selector:@selector(reloadData) userInfo:nil repeats:YES];
     
     

@@ -125,11 +125,11 @@ public class MainActivity extends ListActivity implements ParseQueryAdapter.OnQu
                 }
                 finally{
                     //also call the same runnable
-                    handler.postDelayed(this, 20*1000);
+                    handler.postDelayed(this, 60*1000);
                 }
             }
         };
-        handler.postDelayed(runnable, 20*1000);
+        handler.postDelayed(runnable, 60*1000);
 
     }
 
